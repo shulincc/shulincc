@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>兩真一假投票器</title>
+  <style>
+    :root{
+      --bg1:#f7f8fb;
+      --bg2:#ffffff;
+      --primary:#4f7cff;
+      --primary-2:#8fb3ff;
+      --accent:#22c55e;
+      --danger:#ef4444;
+      --muted:#64748b;
+      --text:#0f172a;
+      --border:#e6e9f0;
+      --shadow:0 6px 20px rgba(15, 23, 42, 0.06);
+      --radius:16px;
+      --radius-sm:12px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; padding:16px 12px calc(16px + var(--safe-bottom));
+      font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "PingFang TC", "Noto Sans TC", "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+      background: linear-gradient(180deg, var(--bg1), #eef3ff 60%, #f7fbff 100%);
+      color:var(--text);
+      overflow-x: hidden;
+    }
+    .shell{
+      max-width: 980px; margin: 0 auto;
+      background: var(--bg2); border:1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .hdr{
+      padding:16px 14px; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background: linear-gradient(180deg, #ffffff, #f7f9ff);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .brand{ display:flex; align-items:center; gap:10px; min-width:0; }
+    .logo{
+      width:32px; height:32px; border-radius:10px;
+      background: radial-gradient(120% 120% at 20% 20%, var(--primary) 0%, var(--primary-2) 60%, #cfe1ff 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.5);
+      flex: 0 0 auto;
+    }
+    .title{ min-width:0; }
+    .title h1{
+      font-size:17px; margin:0 0 2px 0; font-weight:700; letter-spacing:.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .title p{ margin:0; color:var(--muted); font-size:12px; }
+    .status-pill{
+      flex:0 0 auto;
+      font-size:11px; font-weight:700; letter-spacing:.3px;
+      padding:8px 10px; border-radius:999px;
+      background:#eaf2ff; color:#2857ff; border:1px solid #d9e6ff;
+    }
+
+    .body{ display:grid; grid-template-columns: 1fr; gap:0; }
+
+    /* Setup */
+    .setup{ padding:14px; display:block; }
+    .field-row{ display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
+    .field{ flex:1 1 140px; display:flex; flex-direction:column; gap:6px; }
+    label{ font-size:12px; color:var(--muted); }
+    input[type="text"]{
+      height:44px; padding:0 12px; border:1px solid var(--border); border-radius:12px;
+      font-size:16px; outline:none; transition:border-color .2s, box-shadow .2s;
+      background:#fbfdff; width:100%;
+    }
+    input[type="text"]:focus{ border-color:#b7cdfd; box-shadow:0 0 0 4px rgba(79,124,255,.12); }
+
+    .btn{
+      height:44px; padding:0 14px; border-radius:12px; border:1px solid transparent;
+      background:var(--primary); color:#fff; font-weight:800; letter-spacing:.2px; cursor:pointer;
+      box-shadow: var(--shadow); transition: transform .06s ease, box-shadow .2s ease, opacity .2s ease;
+      font-size:15px;
+    }
+    .btn.secondary{ background:#eaf2ff; color:#2857ff; border-color:#d9e6ff; }
+    .btn:hover{ transform: translateY(-1px); box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08); }
+    .btn:active{ transform: translateY(0); }
+
+    .alert{ margin-top:12px; padding:10px 12px; border-radius:12px; font-size:14px; display:none; }
+    .alert.loading{ display:block; background:#f4f7ff; color:#2857ff; border:1px solid #dfe9ff; }
+    .alert.success{ display:block; background:#f2fcf6; color:#137a44; border:1px solid #c8f1da; }
+    .alert.error{ display:block; background:#fff5f5; color:#b42318; border:1px solid #ffd4d4; }
+
+    /* Vote */
+    .vote{ padding:12px 14px 20px; display:none; }
+    .room-card{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:12px 12px; border:1px solid var(--border); border-radius:14px; background:#fbfdff;
+    }
+    .room-id{ font-size:20px; font-weight:900; letter-spacing: 1px; color:#2857ff; }
+    .meta{ color:var(--muted); font-size:12px; }
+
+    .grid{
+      margin-top:12px; display:grid; grid-template-columns: 1fr 360px; gap:10px;
+      align-items:start;
+    }
+    @media (max-width: 1024px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+    .panel{ border:1px solid var(--border); border-radius:14px; background:#fff; padding:12px; max-width: 560px; margin: 0 auto; width: 100%; }
+    @media (max-width: 640px){
+      .panel{ max-width: 440px; }
+    }
+    @media (max-width: 420px){
+      .panel{ max-width: 360px; }
+    }
+    .panel h3{ margin:0 0 10px 0; font-size:15px; text-align:center; }
+
+    .btn-cta{ display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; justify-content:center; }
+    .vote-btn{
+      flex:1; min-width:132px; height:52px; border-radius:14px; border:1px solid var(--border);
+      font-size:17px; font-weight:900; cursor:pointer; transition: transform .06s ease, box-shadow .2s, border-color .2s;
+      box-shadow: var(--shadow);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .vote-btn.true{ background:linear-gradient(180deg, #e8fff3, #f7fffa); color:#0a7a45; }
+    .vote-btn.false{ background:linear-gradient(180deg, #fff0f0, #fff8f8); color:#a61b1b; }
+    .vote-btn.active{ border-color:#8fb3ff; }
+    .vote-btn:active{ transform: scale(0.99); }
+    .vote-btn:disabled{ opacity: .6; cursor:not-allowed; }
+
+    .stats{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+    .stat{ flex:1; min-width:116px; max-width:150px; padding:10px; border:1px solid var(--border); border-radius:14px; background:#fff; text-align:center; }
+    .stat .n{ font-size:22px; font-weight:900; }
+    .stat .k{ color:var(--muted); font-size:12px; }
+
+    .chart-wrap{ height:280px; }
+    @media (max-width: 480px){ .chart-wrap{ height:220px; } }
+    canvas{ display:block; width:100% !important; height:100% !important; }
+
+    .controls{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:flex-end; }
+    .btn-reset{
+      position:relative;
+      height:38px; padding:0 12px; border-radius:10px; border:1px solid #ffe1a6;
+      background:#fff8e6; color:#8a5b00; font-weight:800; cursor:pointer;
+      overflow:hidden; user-select:none;
+      transition: transform .06s ease;
+    }
+    .btn-reset:active{ transform: scale(0.98); }
+    .btn-reset .hold-bar{
+      position:absolute; left:0; top:0; bottom:0; width:0%;
+      background: linear-gradient(90deg, #ffd590, #ffc35c);
+      opacity:.7; pointer-events:none;
+      transition: width .05s linear;
+    }
+    .btn-reset.success{ background:#e8fff3; border-color:#b9f4d2; color:#0a7a45; }
+
+    .btn-leave{
+      height:38px; padding:0 12px; border-radius:10px; border:1px solid var(--border);
+      background:#f8fafc; color:var(--text); font-weight:800; cursor:pointer;
+    }
+
+    .conn{
+      position: fixed; top: 10px; right: 10px; background:#edf2ff; color:#1e40af;
+      border:1px solid #dbe6ff; padding:6px 10px; border-radius:999px; font-size:11px; font-weight:800;
+      box-shadow: var(--shadow);
+    }
+    .spectator-badge{
+      margin-left: 6px; font-size:11px; font-weight:800; color:#6b7280;
+      background:#f3f4f6; border:1px solid #e5e7eb; padding:5px 8px; border-radius:999px;
+    }
+  </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="conn" id="connectionStatus">CONNECTED</div>
+
+  <div class="shell">
+    <header class="hdr">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div class="title">
+          <h1>兩真一假投票器 <span id="spectatorBadge" class="spectator-badge" style="display:none;">僅觀看</span></h1>
+          <p>專業・精簡・即時同步</p>
+        </div>
+      </div>
+      <div class="status-pill" id="pill">READY</div>
+    </header>
+
+    <!-- Setup -->
+    <section class="body setup" id="setup">
+      <div class="field-row">
+        <div class="field">
+          <label for="roomId">房間代碼（4位數字）</label>
+          <input id="roomId" type="text" inputmode="numeric" maxlength="4" placeholder="自動載入最新房間代碼…" />
+        </div>
+        <div class="field">
+          <label for="spectatorCode">查看暗碼（選填；正確才會進入僅觀看）</label>
+          <input id="spectatorCode" type="text" placeholder="輸入暗碼可只看不參與" />
+        </div>
+        <button class="btn" onclick="createRoom()">建立房間</button>
+        <button class="btn secondary" onclick="joinRoom()">加入房間</button>
+      </div>
+      <div id="status" class="alert"></div>
+    </section>
+
+    <!-- Voting -->
+    <section class="body vote" id="vote">
+      <div class="room-card">
+        <div>
+          <div class="meta">房間代碼</div>
+          <div class="room-id" id="currentRoomId">----</div>
+        </div>
+        <div class="controls">
+          <button class="btn-reset" id="resetBtn">
+            <span class="hold-bar" id="holdBar"></span>
+            全部重置（長按）
+          </button>
+          <button class="btn-leave" onclick="leaveRoom()">離開</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- 1) 投票 -->
+        <div class="panel">
+          <h3>投票</h3>
+          <div class="btn-cta">
+            <button class="vote-btn true" id="trueBtn" onclick="vote('true')">真的</button>
+            <button class="vote-btn false" id="falseBtn" onclick="vote('false')">假的</button>
+          </div>
+        </div>
+
+        <!-- 2) 即時結果 -->
+        <div class="panel">
+          <h3>即時結果</h3>
+          <div class="stats">
+            <div class="stat"><div class="n" id="trueCount">0</div><div class="k">真的</div></div>
+            <div class="stat"><div class="n" id="totalCount">0</div><div class="k">總票數</div></div>
+            <div class="stat"><div class="n" id="falseCount">0</div><div class="k">假的</div></div>
+            <div class="stat"><div class="n" id="participantCount">0</div><div class="k">在線人數</div></div>
+          </div>
+          <div class="chart-wrap"><canvas id="pieChart" aria-label="投票圓餅圖"></canvas></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // ==== 必填：你的 Supabase 資訊 ====
+    const SUPABASE_URL = 'https://jrhskaowdyiraawcjaxy.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpyaHNrYW93ZHlpcmFhd2NqYXh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgxMDE2NzgsImV4cCI6MjA3MzY3NzY3OH0.Necr8vq0cremK4fIgIJuD2Id3oF9K34VzLZb3sQaqjs';
+
+    // ==== 暗碼設定 ====
+    const VIEW_SECRET = 'letmein'; // 留空字串 '' 代表關閉僅觀看功能
+
+    // 狀態
+    let sb = null, sync = null, currentRoomId = null;
+    let chart = null, lastTallies = { true:0, false:0, total:0 };
+    let isSpectator = false;
+    const userId = 'user_' + Math.random().toString(36).slice(2, 9);
+    let selected = null;
+    let votingLock = false;
+    let presenceHasSynced = false; // 用來判斷是否已拿到 presence 結果
+
+    const $ = s => document.querySelector(s);
+    function setAlert(type, msg){ const el=$('#status'); el.className='alert '+(type||''); el.textContent=msg||''; el.style.display=msg?'block':'none'; }
+    function setPill(t){ $('#pill').textContent=t; }
+    function setConn(t){ $('#connectionStatus').textContent=t; }
+
+    function markActive(choice){
+      selected = choice;
+      ['trueBtn','falseBtn'].forEach(id=>document.getElementById(id).classList.remove('active'));
+      if(choice==='true') document.getElementById('trueBtn').classList.add('active');
+      if(choice==='false') document.getElementById('falseBtn').classList.add('active');
+    }
+
+    function showVoteScreen(roomId){
+      $('#setup').style.display='none';
+      $('#vote').style.display='block';
+      $('#currentRoomId').textContent=roomId;
+      $('#spectatorBadge').style.display = isSpectator ? 'inline-block' : 'none';
+      const disabled = isSpectator;
+      ['trueBtn','falseBtn'].forEach(id=>{ const el=document.getElementById(id); if(el) el.disabled=disabled; });
+      initChart();
+      applyTallies(lastTallies);
+      setAlert('');
+    }
+    function initChart(){
+      const ctx=document.getElementById('pieChart').getContext('2d');
+      if(chart) chart.destroy();
+      chart=new Chart(ctx,{type:'pie',data:{labels:['真的','假的'],datasets:[{data:[0,0],backgroundColor:['#b7f0ce','#ffc2c2'],borderColor:['#7fd9a6','#ff9a9a'],borderWidth:2,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+    }
+    function applyTallies(t){
+      document.getElementById('trueCount').textContent=t.true||0;
+      document.getElementById('falseCount').textContent=t.false||0;
+      document.getElementById('totalCount').textContent=t.total||0;
+      if(chart){ chart.data.datasets[0].data=[t.true||0,t.false||0]; chart.update(); }
+    }
+    function clearTalliesUI(){
+      lastTallies = { true:0, false:0, total:0 };
+      applyTallies(lastTallies);
+      markActive(null);
+    }
+
+    class SupabaseSync{
+      constructor(roomId,userId){ this.roomId=roomId; this.userId=userId; this.resetTs=new Date(0).toISOString(); this.voteChannel=null; this.roomChannel=null; this.presenceChannel=null; }
+      client(){ if(!sb) sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY); return sb; }
+      async ensureRoomExistsOrFix(){
+        const s=this.client();
+        try{ await s.from('rooms').insert({room_id:this.roomId}); }catch(_){}
+        await s.from('rooms').update({ reset_ts: new Date(0).toISOString() }).eq('room_id', this.roomId).is('reset_ts', null);
+      }
+      async fetchRoom(){
+        const s=this.client();
+        const {data}=await s.from('rooms').select('reset_ts').eq('room_id',this.roomId).single();
+        this.resetTs = (data && data.reset_ts) ? data.reset_ts : new Date(0).toISOString();
+      }
+      async tallies(){
+        const s=this.client();
+        const {data}=await s.from('votes').select('choice,user_id,created_at').eq('room_id',this.roomId).gt('created_at',this.resetTs);
+        let t=0,f=0; const distinctUsers=new Set();
+        (data||[]).forEach(r=>{ distinctUsers.add(r.user_id); if(r.choice==='true') t++; else f++; });
+        // 若 still 沒有 presence，同步更新參與人數為 distinct user 數（讓觀眾也看得到合理數字）
+        if(!presenceHasSynced){
+          document.getElementById('participantCount').textContent = distinctUsers.size;
+        }
+        return {true:t,false:f,total:t+f};
+      }
+      async vote(choice){
+        const s=this.client();
+        const nowIso = new Date().toISOString();
+        const {error}=await s.from('votes').upsert(
+          {room_id:this.roomId,user_id:this.userId,choice,created_at: nowIso},
+          {onConflict:'room_id,user_id'}
+        );
+        if(error) throw error;
+      }
+      async resetHard(){
+        const s=this.client();
+        const { error } = await s.from('votes').delete().eq('room_id', this.roomId);
+        if(error) throw error;
+        await s.from('rooms').update({ reset_ts: new Date().toISOString() }).eq('room_id', this.roomId);
+      }
+      subscribe(onTallies){
+        const s=this.client();
+        this.voteChannel=s.channel(`votes_${this.roomId}`)
+          .on('postgres_changes',{event:'*',schema:'public',table:'votes',filter:`room_id=eq.${this.roomId}`},
+            async()=>{ await this.fetchRoom(); const t=await this.tallies(); onTallies(t); })
+          .subscribe();
+        this.roomChannel=s.channel(`rooms_${this.roomId}`)
+          .on('postgres_changes',{event:'UPDATE',schema:'public',table:'rooms',filter:`room_id=eq.${this.roomId}`},
+            async()=>{ await this.fetchRoom(); clearTalliesUI(); const t=await this.tallies(); onTallies(t); })
+          .subscribe();
+        // Presence：觀眾不 track，但仍接收 sync 事件來顯示當前在線參與者數
+        this.presenceChannel=s.channel(`presence_${this.roomId}`,{config:{presence:{ key:this.userId }}});
+        this.presenceChannel
+          .on('presence',{event:'sync'},()=>{
+            presenceHasSynced = true;
+            const state=this.presenceChannel.presenceState();
+            const count = Object.values(state).flat().length;
+            document.getElementById('participantCount').textContent = count;
+          })
+          .subscribe((st)=>{ if(st==='SUBSCRIBED' && !isSpectator){ this.presenceChannel.track({ online_at:new Date().toISOString() }); } });
+      }
+      unsubscribe(){ const s=this.client(); if(this.voteChannel) s.removeChannel(this.voteChannel); if(this.roomChannel) s.removeChannel(this.roomChannel); if(this.presenceChannel) s.removeChannel(this.presenceChannel); }
+    }
+
+    async function createRoom(){ await startFromInput(true); }
+    async function joinRoom(){ await startFromInput(false); }
+    async function startFromInput(isCreate){
+      const input=document.getElementById('roomId'); let rid=(input.value||'').trim();
+      const code=(document.getElementById('spectatorCode').value||'').trim();
+
+      // 僅觀看的更嚴格邏輯：只有設定了 VIEW_SECRET 且輸入完全正確，才視為觀眾；否則就不是觀眾
+      if(VIEW_SECRET && VIEW_SECRET.length > 0){
+        if(code.length > 0 && code !== VIEW_SECRET){
+          setAlert('error','查看暗碼錯誤，請確認後再試');
+          return;
+        }
+        isSpectator = (code === VIEW_SECRET);
+      }else{
+        isSpectator = false; // 未啟用觀看功能
+      }
+
+      if(!rid){ rid = await getLatestRoomId() || String(Math.floor(1000+Math.random()*9000)); input.value = rid; }
+      if(!/^\d{4}$/.test(rid)){ setAlert('error','房間代碼需為 4 位數字'); return; }
+
+      await startRoom(rid, isCreate);
+    }
+
+    async function startRoom(rid, isCreate){
+      setAlert('loading','連線中...'); setPill('CONNECTING'); setConn('CONNECTING');
+      presenceHasSynced = false;
+      try{
+        sync=new SupabaseSync(rid,userId);
+        await sync.ensureRoomExistsOrFix();
+        await sync.fetchRoom();
+        const t=await sync.tallies();
+        currentRoomId=rid;
+        showVoteScreen(rid);
+        applyTallies(t);                 // 觀眾與參與者都立即看到現有統計
+        sync.subscribe((t2)=>{ applyTallies(t2); }); // 即時更新
+        setAlert('success', isSpectator ? '已連線（僅觀看）' : '已連線'); setTimeout(()=>setAlert('',''),800);
+        setPill(isSpectator ? 'LIVE · VIEW' : 'LIVE'); setConn('LIVE');
+      }catch(e){ console.error(e); setAlert('error','連線失敗：'+e.message); setPill('ERROR'); setConn('ERROR'); }
+    }
+
+    async function vote(type){
+      if(!sync || isSpectator) return;
+      if(votingLock) return;
+      votingLock = true;
+      markActive(type);
+      try{
+        await sync.vote(type);
+        const t=await sync.tallies();
+        applyTallies(t);
+      }catch(e){ console.error(e); setAlert('error','投票失敗，請稍後再試'); }
+      finally{
+        setTimeout(()=>{ votingLock=false; }, 300);
+      }
+    }
+
+    // 長按重置（集氣動畫）
+    (function enableLongPressReset(){
+      const btn=document.getElementById('resetBtn'); 
+      const bar=document.getElementById('holdBar');
+      let timer=null, raf=null; 
+      const holdMs=1100;
+      let startTs=0;
+
+      function frame(ts){
+        if(!startTs) startTs = ts;
+        const p = Math.min(1, (ts - startTs) / holdMs);
+        bar.style.width = (p*100).toFixed(1) + '%';
+        if(p < 1){ raf = requestAnimationFrame(frame); }
+      }
+      const start=()=>{
+        cancel(); startTs = 0; bar.style.width='0%';
+        raf = requestAnimationFrame(frame);
+        timer=setTimeout(async()=>{
+          try{
+            clearTalliesUI();
+            await sync.resetHard();
+            markActive(null);
+            btn.classList.add('success');
+            setTimeout(()=>btn.classList.remove('success'), 600);
+          }catch(e){ console.error(e); }
+          cancel();
+        }, holdMs);
+      };
+      const cancel=()=>{
+        if(timer){ clearTimeout(timer); timer=null; }
+        if(raf){ cancelAnimationFrame(raf); raf=null; }
+        bar.style.width='0%';
+      };
+      btn.addEventListener('mousedown',start);
+      btn.addEventListener('touchstart',start, {passive:true});
+      ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=>btn.addEventListener(ev,cancel));
+    })();
+
+    function leaveRoom(){
+      if(sync){ sync.unsubscribe(); sync=null; }
+      currentRoomId=null; chart=null;
+      document.getElementById('participantCount').textContent = '0';
+      document.getElementById('vote').style.display='none'; document.getElementById('setup').style.display='block';
+      setPill('READY'); setConn('CONNECTED'); setAlert('');
+      isSpectator=false; document.getElementById('spectatorBadge').style.display='none';
+      ['trueBtn','falseBtn'].forEach(id=>{ const el=document.getElementById(id); if(el) el.disabled=false; });
+      markActive(null);
+    }
+
+    async function getLatestRoomId(){
+      try{
+        const client = sb || (sb = supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY));
+        const { data, error } = await client
+          .from('rooms')
+          .select('room_id, created_at')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if(error){ console.warn('getLatestRoomId error', error); return null; }
+        return data && data.room_id ? data.room_id : null;
+      }catch(err){ console.warn('getLatestRoomId exception', err); return null; }
+    }
+
+    // 也支援 URL 參數 ?view=1&code=xxx 作為快速觀看模式切換
+    function getUrlParams(){
+      const p=new URLSearchParams(location.search);
+      return { view: p.get('view'), code: p.get('code'), room: p.get('room') };
+    }
+
+    window.addEventListener('load', async ()=>{
+      try{
+        const {view, code, room} = getUrlParams();
+        if(room){ document.getElementById('roomId').value = room; }
+        if(code){ document.getElementById('spectatorCode').value = code; }
+        if(view==='1' && VIEW_SECRET && code === VIEW_SECRET){
+          // 若用 URL 觸發觀看模式，直接加入
+          joinRoom();
+          return;
+        }
+
+        const latest = await getLatestRoomId();
+        if(latest && !room){ document.getElementById('roomId').value = latest; }
+        else if(!room){ document.getElementById('roomId').value = String(Math.floor(1000+Math.random()*9000)); }
+      }catch(_){
+        document.getElementById('roomId').value = String(Math.floor(1000+Math.random()*9000));
+      }
+    });
+  </script>
+</body>
+</html>
