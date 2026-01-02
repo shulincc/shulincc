@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>導保耳還表格產生器</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @font-face {
+            font-family: 'CustomFont';
+            src: local('華康宗楷體W7'), local('華康宗楷體W7(P)');
+            font-weight: normal;
+            font-style: normal;
+        }
+        body { 
+            font-family: 'CustomFont', 'KaiTi', 'Kai', 'STKaiti', sans-serif;
+            line-height: 1.6; 
+            padding: 20px; 
+            background-color: #f0f0f0;
+            font-size: 18px;
+        }
+        .a4-page {
+            width: 210mm;
+            height: 297mm;
+            margin: 0 auto 20px;
+            background: white;
+            box-shadow: 0 0 0.5cm rgba(0,0,0,0.5);
+            overflow: hidden;
+            page-break-after: always;
+        }
+        .page-content { 
+            padding: 10mm 10mm;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse;
+            border: 3px double #000;
+            margin-bottom: 3mm;
+        }
+        th, td { 
+            border: 1px solid #000; 
+            padding: 1.5mm;
+            text-align: center;
+            font-size: 16pt;
+            height: 32pt;
+            white-space: nowrap;
+        }
+        .title {
+            font-size: 24pt;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 3mm;
+        }
+        .info-table td { 
+            text-align: left;
+            padding: 3mm;
+        }
+        .instructor-attendance td {
+            text-align: center;
+            padding: 3mm;
+        }
+        .participant-table td {
+            padding: 1.5mm;
+            text-align: center;
+            font-size: 14pt;
+            height: 32pt;
+        }
+        .participant-table td:nth-child(1),
+        .participant-table td:nth-child(6) {
+            width: 18%;
+            text-align: left;
+            padding-left: 2mm;
+        }
+        .participant-table td:nth-child(2),
+        .participant-table td:nth-child(3),
+        .participant-table td:nth-child(4),
+        .participant-table td:nth-child(5),
+        .participant-table td:nth-child(7),
+        .participant-table td:nth-child(8),
+        .participant-table td:nth-child(9),
+        .participant-table td:nth-child(10) {
+            width: 8%;
+        }
+        .input-form { 
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .input-form input, .input-form textarea { 
+            width: 100%; 
+            margin-bottom: 10px;
+            font-family: inherit;
+            font-size: 12pt;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .date-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .editable-mode input {
+            border: none;
+            background: transparent;
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            font-family: inherit;
+            font-size: inherit;
+            text-align: inherit;
+        }
+        .editable-mode input:focus {
+            outline: 2px solid #4CAF50;
+        }
+        button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            font-size: 14pt;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        .toggle-button {
+            background-color: #f0f0f0;
+            color: black;
+            border: 1px solid #ccc;
+        }
+        .toggle-button.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        @media print {
+            body { margin: 0; padding: 0; }
+            .a4-page { 
+                margin: 0; 
+                box-shadow: none;
+            }
+            .input-form, #message { display: none; }
+            @page { margin: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="input-form">
+        <h2>輸入活動資訊</h2>
+        <input type="text" id="organizationName" placeholder="組織名稱" value="新北市樹林社區大學保險同意書暨導覽機確認表" required>
+        <input type="text" id="activityName" placeholder="活動名稱" value="路上的樹林系列走讀工作坊活動 場次九：三多興隆走讀" required>
+        <input type="text" id="location" placeholder="地點" value="樹林區" required>
+        
+        <div class="date-input-container">
+            <input type="date" id="dateInput" required>
+            <input type="text" id="formattedDate" placeholder="民國年日期（自動產生）" readonly>
+        </div>
+        
+        <input type="text" id="time" placeholder="時間" value="14:00 - 16:30" required>
+        <input type="text" id="instructor" placeholder="講師姓名" value="黃柏森" required>
+        <textarea id="participantInput" placeholder="請輸入參加者姓名，每行一位參加者" rows="10"></textarea>
+        
+        <button onclick="generateTables()">生成表格</button>
+        <button onclick="generatePDF()">生成 PDF</button>
+        <button onclick="printTables()">列印表格</button>
+        <button onclick="toggleEditMode()" id="editModeButton" class="toggle-button">啟用編輯模式</button>
+        <div id="message"></div>
+    </div>
+
+    <div id="pagesContainer"></div>
+
+    <script>
+        let editModeEnabled = false;
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+            const rocYear = date.getFullYear() - 1911;
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const weekday = weekdays[date.getDay()];
+            return `${rocYear}年${month.toString().padStart(2, '0')}月${day.toString().padStart(2, '0')}日 星期${weekday}`;
+        }
+
+        function wrapInInput(content, className = '') {
+            return editModeEnabled ? 
+                `<input type="text" value="${content}" class="${className}">` : 
+                content;
+        }
+
+        function generateHeaderTable(activityInfo) {
+            return `
+                <div class="title">${wrapInInput(activityInfo.organizationName)}</div>
+                <table class="info-table">
+                    <tr>
+                        <td style="width: 15%;">活 動</td>
+                        <td colspan="7">${wrapInInput(activityInfo.name)}</td>
+                    </tr>
+                    <tr>
+                        <td>地 點</td>
+                        <td colspan="7">${wrapInInput(activityInfo.location)}</td>
+                    </tr>
+                    <tr>
+                        <td>日 期</td>
+                        <td colspan="3">${wrapInInput(activityInfo.date)}</td>
+                        <td style="width: 15%;">時 間</td>
+                        <td colspan="3">${wrapInInput(activityInfo.time)}</td>
+                    </tr>
+                    <tr>
+                        <td>講 師</td>
+                        <td colspan="7">${wrapInInput(activityInfo.instructor)}</td>
+                    </tr>
+                    <tr class="instructor-attendance">
+                        <td style="width: 15%">講師簽名</td>
+                        <td style="width: 35%"></td>
+                        <td style="width: 15%; text-align: center;">導保耳還</td>
+                        <td style="width: 35%"></td>
+                    </tr>
+                </table>`;
+        }
+
+        function generateTables() {
+            const activityInfo = {
+                organizationName: document.getElementById('organizationName').value,
+                name: document.getElementById('activityName').value,
+                location: document.getElementById('location').value,
+                date: document.getElementById('formattedDate').value,
+                time: document.getElementById('time').value,
+                instructor: document.getElementById('instructor').value
+            };
+
+            const participantInput = document.getElementById('participantInput').value;
+            const participants = participantInput.split('\n')
+                .map(line => line.trim())
+                .filter(line => line !== '');
+
+            const pagesContainer = document.getElementById('pagesContainer');
+            pagesContainer.innerHTML = '';
+
+            // 計算需要的頁數
+            const participantsPerPage = 20;
+            const pageCount = Math.ceil(participants.length / participantsPerPage);
+
+            // 生成分頁
+            for (let pageIndex = 0; pageIndex < Math.max(1, pageCount); pageIndex++) {
+                const page = document.createElement('div');
+                page.className = 'a4-page';
+                const content = document.createElement('div');
+                content.className = 'page-content';
+
+                // 添加頁碼
+                const pageInfo = pageCount > 1 ? ` (${pageIndex + 1}/${pageCount})` : '';
+                const currentPageActivityName = activityInfo.name + pageInfo;
+                const currentPageActivityInfo = { ...activityInfo, name: currentPageActivityName };
+                
+                let tableHTML = generateHeaderTable(currentPageActivityInfo);
+                
+                // 參與者表格
+                tableHTML += `<table class="participant-table">
+                    <tr>
+                        <td>姓名</td>
+                        <td>導</td>
+                        <td>保</td>
+                        <td>耳</td>
+                        <td>還</td>
+                        <td>姓名</td>
+                        <td>導</td>
+                        <td>保</td>
+                        <td>耳</td>
+                        <td>還</td>
+                    </tr>`;
+
+                const startIndex = pageIndex * participantsPerPage;
+                
+                for (let i = 0; i < 10; i++) {
+                    tableHTML += '<tr>';
+                    // 左側參與者
+                    const leftIndex = startIndex + i;
+                    const leftNum = leftIndex + 1;
+                    const leftName = participants[leftIndex] || '';
+                    tableHTML += `<td>${wrapInInput(leftNum + '. ' + leftName)}</td>`;
+                    tableHTML += '<td></td><td></td><td></td><td></td>';
+                    
+                    // 右側參與者
+                    const rightIndex = startIndex + i + 10;
+                    const rightNum = rightIndex + 1;
+                    const rightName = participants[rightIndex] || '';
+                    tableHTML += `<td>${wrapInInput(rightNum + '. ' + rightName)}</td>`;
+                    tableHTML += '<td></td><td></td><td></td><td></td>';
+                    tableHTML += '</tr>';
+                }
+
+                tableHTML += '</table>';
+                content.innerHTML = tableHTML;
+                page.appendChild(content);
+                pagesContainer.appendChild(page);
+            }
+        }
+
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const pages = document.querySelectorAll('.a4-page');
+            let currentPage = 0;
+
+            function processNextPage() {
+                if (currentPage < pages.length) {
+                    html2canvas(pages[currentPage], {
+                        scale: 2,
+                        useCORS: true,
+                        allowTaint: true
+                    }).then(canvas => {
+                        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                        if (currentPage > 0) {
+                            doc.addPage();
+                        }
+                        doc.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+                        currentPage++;
+                        processNextPage();
+                    });
+                } else {
+                    doc.save("導保耳還表格.pdf");
+                }
+            }
+
+            processNextPage();
+        }
+
+        function printTables() {
+            window.print();
+        }
+
+        function toggleEditMode() {
+            editModeEnabled = !editModeEnabled;
+            const button = document.getElementById('editModeButton');
+            button.textContent = editModeEnabled ? '禁用編輯模式' : '啟用編輯模式';
+            button.classList.toggle('active');
+            document.getElementById('pagesContainer').classList.toggle('editable-mode');
+            generateTables();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.getElementById('dateInput');
+            const formattedDate = document.getElementById('formattedDate');
+
+            dateInput.addEventListener('change', function() {
+                if (this.value) {
+                    formattedDate.value = formatDate(this.value);
+                } else {
+                    formattedDate.value = '';
+                }
+            });
+
+            const today = new Date();
+            dateInput.value = today.toISOString().split('T')[0];
+            formattedDate.value = formatDate(today);
+        });
+    </script>
+</body>
+</html>
