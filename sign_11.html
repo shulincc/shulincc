@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>活動報名表生成器</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        @font-face {
+            font-family: 'CustomFont';
+            src: local('華康宗楷體W7'), local('華康宗楷體W7(P)'),
+                 url('./華康宗楷體W7.TTC') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        body { 
+            font-family: 'CustomFont', 'KaiTi', 'Kai', 'STKaiti', sans-serif;
+            line-height: 1.6; 
+            padding: 20px; 
+            background-color: #f0f0f0;
+            font-size: 18px; /* 將基礎字體大小調大 */
+        }
+        .a4-page {
+            width: 210mm;
+            height: 297mm;
+            margin: 0 auto 20px;
+            background: white;
+            box-shadow: 0 0 0.5cm rgba(0,0,0,0.5);
+            overflow: hidden;
+            page-break-after: always;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .page-content { 
+            padding: 10mm 10mm; /* 從 15mm 10mm 改為 10mm 10mm，減少上下邊距 */
+        }
+        table { 
+            width: 100%; 
+            border-collapse: separate;
+            border-spacing: 0;
+            border: 3px double #000;
+            margin-bottom: 3mm; /* 從 5mm 改為 3mm，減少表格之間的間距 */
+        }
+        th, td { 
+            border: 1px solid #000; 
+            padding: 1.5mm; /* 從 2mm 改為 1.5mm */
+            text-align: left;
+            font-size: 16pt; /* 從 14pt 改為 16pt */
+            height: 32pt; /* 從 28pt 改為 32pt */
+        }
+        th { background-color: #f2f2f2; font-weight: normal; }
+        .title {
+            font-size: 24pt;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 3mm; /* 從 5mm 改為 3mm */
+            white-space: nowrap;
+        }
+        .title .org-name {
+            display: inline;
+        }
+        .title .table-type {
+            display: inline;
+        }
+        /* 非編輯模式下，組織名稱後添加間距 */
+        .title .org-name:not(:empty) {
+            margin-right: 0.3em;
+        }
+        /* 編輯模式下，移除組織名稱的右邊距，因為 input 會有自己的間距 */
+        .editable-mode .title .org-name {
+            margin-right: 0;
+        }
+        .info-table td:nth-child(odd) { width: 22%; }
+        .info-table td:nth-child(even) { width: 28%; }
+        .participant-table th, .participant-table td { 
+            width: 25%; 
+            text-align: center;
+            font-size: 18pt; /* 從 16pt 改為 18pt */
+            height: 36pt; /* 從 32pt 改為 36pt */
+        }
+        .qrcode-container {
+            width: 120px;
+            height: 120px;
+            margin: 3mm auto; /* 從 5mm 改為 3mm */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .center-text {
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+        .input-form { 
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .input-form input, .input-form textarea { 
+            width: 100%; 
+            margin-bottom: 10px;
+            font-family: inherit;
+            font-size: 12pt;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .input-row input:first-child {
+            flex: 3;
+        }
+        .input-row input:last-child {
+            flex: 1;
+            min-width: 120px;
+        }
+        #message { 
+            margin-top: 10px; 
+            padding: 10px; 
+            border-radius: 5px; 
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .loading { display: none; text-align: center; margin-top: 10px; }
+        button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            font-size: 14pt;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .page-select {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .page-select label {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .page-select label:hover {
+            background-color: #e0e0e0;
+        }
+        .page-select input[type="radio"] {
+            display: none;
+        }
+        .page-select input[type="radio"]:checked + label {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .title-input {
+            font-size: 16pt;
+            font-weight: bold;
+            width: 100%;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .toggle-button {
+            background-color: #f0f0f0;
+            color: black;
+            border: 1px solid #ccc;
+        }
+        .toggle-button.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .toggle-button:disabled {
+            background-color: #cccccc;
+            color: #666666;
+            cursor: not-allowed;
+        }
+        @media print {
+            body { margin: 0; padding: 0; }
+            .a4-page { 
+                margin: 0; 
+                box-shadow: none;
+                page-break-after: always;
+            }
+            .input-form, #message, .loading { display: none; }
+        }
+        .qrcode-container {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .info-table td {
+            vertical-align: middle;
+        }
+        /* 添加以下樣式 */
+        .editable-mode input {
+            border: none;
+            background: transparent;
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            font-family: inherit;
+            font-size: inherit;
+            text-align: inherit;
+            font-weight: inherit;
+            box-sizing: border-box;
+        }
+        .editable-mode input:focus {
+            outline: 2px solid #4CAF50;
+            background: rgba(76, 175, 80, 0.05);
+        }
+        /* 標題區域的 input 特殊處理 */
+        .editable-mode .title input {
+            display: inline;
+            width: auto;
+            padding: 0 1px;
+        }
+        /* 組織名稱 input 右側添加間距 */
+        .editable-mode .title .org-name input {
+            margin-right: 0.3em;
+        }
+        /* 修改資訊表格樣式 */
+        .info-table td { 
+            padding: 3mm;        /* 增加單元格內邊距 */
+            font-size: 16pt;     /* 基本字體大小 */
+        }
+        /* 日期欄位特殊處理 */
+        .info-table .date-cell {
+            font-size: 14pt;     /* 日期默認小一號字體 */
+            white-space: nowrap; /* 防止日期換行 */
+        }
+        /* 確保編輯模式下的輸入框也遵循相同的樣式 */
+        .editable-mode .date-cell input {
+            font-size: inherit;
+        }
+        /* 添加活動名稱長度檢查的處理 */
+        .info-table .activity-name {
+            font-size: 16pt;     /* 默認字體大小 */
+        }
+        .info-table .activity-name.long-text {
+            font-size: 14pt;     /* 當文字過長時的字體大小 */
+        }
+        .form-select {
+            width: 100%;
+            margin-bottom: 10px;
+            font-family: inherit;
+            font-size: 12pt;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="input-form">
+        <h2>輸入活動資訊</h2>
+        <input type="text" id="organizationName" placeholder="組織名稱(選填)" value="新北市樹林社區大學活動" class="title-input">
+        <select id="itemType" class="form-select">
+            <option value="活動">活動</option>
+            <option value="項目">項目</option>
+            <option value="講座">講座</option>
+            <option value="課程">課程</option>
+            <option value="工作坊">工作坊</option>
+        </select>
+        <input type="text" id="activityName" placeholder="活動名稱（選填）" value="路上的樹林系列走讀與工作坊活動 場次十：溪崑彭厝走讀場">
+        <input type="text" id="location" placeholder="地點（選填）" value="樹林區公所">
+        <input type="date" id="dateInput">
+        <input type="text" id="formattedDate" placeholder="日期（選填）">
+        <input type="text" id="time" placeholder="時間（選填）" value="09:00-12:00">
+        <select id="instructorType" class="form-select">
+            <option value="講師姓名">講師姓名</option>
+            <option value="講師單位">講師單位</option>
+            <option value="單位">單位</option>
+            <option value="講師">講師</option>
+        </select>
+        <input type="text" id="instructor" placeholder="講師姓名（選填）" value="黃柏森">
+        <input type="text" id="qrUrl" placeholder="活動群組網址（選填）" value="https://line.me/ti/g2/group_url_here">
+        <input type="text" id="qrDescription" placeholder="QR 碼說明（選填，預設為「活動群組」）" value="活動群組">
+        <div class="input-row">
+            <textarea id="participantInput" placeholder="請輸入參加者資訊，格式為：姓名 電話。每行一位參加者。（選填）" rows="10"></textarea>
+            <input type="number" id="startNumber" placeholder="起始序號" value="1" min="1" style="height: auto;">
+        </div>
+        <div class="page-select">
+            <input type="radio" id="both" name="pageType" value="both" checked>
+            <label for="both">雙頁（聯絡資訊和簽到表）</label>
+            <input type="radio" id="contact" name="pageType" value="contact">
+            <label for="contact">單頁（僅聯絡資訊）</label>
+            <input type="radio" id="signature" name="pageType" value="signature">
+            <label for="signature">單頁（僅簽到表）</label>
+        </div>
+        <button onclick="generateTables()">生成表格</button>
+        <button onclick="generatePDF()">生成 PDF</button>
+        <button onclick="printTables()">列印表格</button>
+        <button id="toggleQRCode" class="toggle-button active" onclick="toggleQRCode()">顯示 QR 碼</button>
+        <button onclick="setDefaultQR()" class="toggle-button">預設QR</button>
+        <button onclick="toggleEditMode()" id="editModeButton" class="toggle-button">啟用編輯模式</button>
+        <button onclick="saveEdits()" id="saveEditsButton" class="toggle-button" style="display:none; background-color:#FF9800;">儲存編輯</button>
+    </div>
+
+    <div id="message"></div>
+    <div class="loading">處理中，請稍候...</div>
+
+    <div id="pagesContainer"></div>
+
+    <script>
+        let showQRCode = true;
+        let editModeEnabled = false;
+
+        function showMessage(text, isError = false) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = isError ? 'error' : 'success';
+        }
+
+        function showLoading(show) {
+            document.querySelector('.loading').style.display = show ? 'block' : 'none';
+        }
+
+        function validateInput() {
+            // 所有欄位都是選填，直接返回 true
+            return true;
+        }
+
+        function toggleQRCode() {
+            const qrUrl = document.getElementById('qrUrl').value.trim();
+            if (qrUrl === '') {
+                showMessage('QR 碼網址為空，無法顯示 QR 碼', true);
+                return;
+            }
+            showQRCode = !showQRCode;
+            const button = document.getElementById('toggleQRCode');
+            button.textContent = showQRCode ? '顯示 QR 碼' : '隱藏 QR 碼';
+            button.classList.toggle('active');
+            generateTables(); // 重新生成表格以更新 QR 碼顯示
+        }
+
+        function saveEdits() {
+            if (!editModeEnabled) {
+                showMessage('編輯模式未啟用', true);
+                return;
+            }
+
+            try {
+                const pagesContainer = document.getElementById('pagesContainer');
+                const allInputs = pagesContainer.querySelectorAll('input[type="text"]');
+                
+                // 記錄修改的數量
+                let changesCount = 0;
+                
+                // 這裡我們需要將表格中的修改保存
+                // 由於表格內容是動態生成的，我們直接重新讀取編輯後的值並保持在DOM中
+                // 實際上，在編輯模式下，用戶的修改已經保存在input元素的value中
+                // 我們只需要確保這些值在重新生成表格時被保留
+                
+                allInputs.forEach(input => {
+                    if (input.value !== input.defaultValue) {
+                        changesCount++;
+                    }
+                });
+
+                showMessage(`已記錄 ${changesCount} 處修改，編輯內容已保存在當前表格中`);
+            } catch (error) {
+                console.error('保存編輯錯誤:', error);
+                showMessage('保存編輯失敗：' + error.message, true);
+            }
+        }
+
+        function generateTables() {
+            if (!validateInput()) return;
+
+            showLoading(true);
+            setTimeout(() => {
+                try {
+                    const activityInfo = {
+                        organizationName: document.getElementById('organizationName').value,
+                        name: document.getElementById('activityName').value,
+                        location: document.getElementById('location').value,
+                        date: document.getElementById('formattedDate').value,
+                        time: document.getElementById('time').value,
+                        instructor: document.getElementById('instructor').value,
+                        qrUrl: document.getElementById('qrUrl').value.trim()
+                    };
+
+                    // 檢查 QR 碼 URL 是否為空
+                    const qrButton = document.getElementById('toggleQRCode');
+                    if (activityInfo.qrUrl === '') {
+                        showQRCode = false;
+                        qrButton.disabled = true;
+                        qrButton.textContent = 'QR 碼未提供';
+                        qrButton.classList.remove('active');
+                    } else {
+                        qrButton.disabled = false;
+                        qrButton.textContent = showQRCode ? '顯示 QR 碼' : '隱藏 QR 碼';
+                        qrButton.classList.toggle('active', showQRCode);
+                    }
+
+                    const participantInput = document.getElementById('participantInput').value;
+                    const participants = participantInput.split('\n').filter(line => line.trim() !== '');
+
+                    const pagesContainer = document.getElementById('pagesContainer');
+                    pagesContainer.innerHTML = '';
+
+                    const pageType = document.querySelector('input[name="pageType"]:checked').value;
+
+                    if (pageType === 'both' || pageType === 'contact') {
+                        const contactPages = generatePages(activityInfo, participants, 'contact');
+                        contactPages.forEach(page => pagesContainer.appendChild(page));
+                    }
+
+                    if (pageType === 'both' || pageType === 'signature') {
+                        const signaturePages = generatePages(activityInfo, participants, 'signature');
+                        signaturePages.forEach(page => pagesContainer.appendChild(page));
+                    }
+
+                    if (pagesContainer.children.length === 0) {
+                        throw new Error('沒有生成任何頁面');
+                    }
+
+                    showMessage('表格生成成功！');
+                } catch (error) {
+                    console.error('表格生成錯誤:', error);
+                    showMessage('表格生成失敗：' + error.message, true);
+                } finally {
+                    showLoading(false);
+                }
+            }, 100);
+        }
+
+        function generatePages(activityInfo, participants, mode) {
+            const pages = [];
+            const participantsPerPage = 20;
+            const totalPages = Math.max(1, Math.ceil(participants.length / participantsPerPage));
+
+            for (let pageNum = 0; pageNum < totalPages; pageNum++) {
+                const startIndex = pageNum * participantsPerPage;
+                const page = document.createElement('div');
+                page.className = 'a4-page';
+                const content = document.createElement('div');
+                content.className = 'page-content';
+                
+                // 添加頁碼（如果有多頁）
+                const pageInfo = totalPages > 1 ? ` (${pageNum + 1}/${totalPages})` : '';
+                content.innerHTML = generateTable(mode, {
+                    ...activityInfo,
+                    name: activityInfo.name + pageInfo
+                }, participants, startIndex);
+
+                page.appendChild(content);
+                pages.push(page);
+
+                // 如果啟用了 QR 碼，為每個頁面生成 QR 碼
+                if (showQRCode && activityInfo.qrUrl) {
+                    const qrContainers = content.querySelectorAll('.qrcode-container');
+                    qrContainers.forEach(container => {
+                        new QRCode(container, {
+                            text: activityInfo.qrUrl,
+                            width: 100,
+                            height: 100
+                        });
+                    });
+                }
+            }
+
+            return pages;
+        }
+
+        function generateTable(mode, activityInfo, participants, startIndex) {
+            const title = mode === 'contact' ? '聯絡資訊表' : '簽到表';
+            const qrDescription = document.getElementById('qrDescription').value.trim() || '活動群組';
+            const startNumber = parseInt(document.getElementById('startNumber').value) || 1;
+            
+            // 檢查活動名稱長度
+            const isLongActivityName = activityInfo.name.length > 23;
+            const activityNameClass = isLongActivityName ? 'activity-name long-text' : 'activity-name';
+
+            function wrapInInput(content, className = '') {
+                if (editModeEnabled) {
+                    // 轉義HTML特殊字符以防止XSS
+                    const escaped = String(content).replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    // 計算內容長度，中文字符算作2個單位，英文算1個
+                    const contentLength = String(content).split('').reduce((len, char) => {
+                        return len + (char.charCodeAt(0) > 255 ? 2 : 1);
+                    }, 0);
+                    const size = Math.max(contentLength || 1, 1);
+                    return `<input type="text" value="${escaped}" class="${className}" size="${size}">`;
+                } else {
+                    return content;
+                }
+            }
+
+            let tableHTML = `
+                <div class="title">
+                    <span class="org-name">${wrapInInput(activityInfo.organizationName ? activityInfo.organizationName : '', 'title-org')}</span>
+                    <span class="table-type">${wrapInInput(title, 'title-type')}</span>
+                </div>
+                <table class="info-table">
+                    <tr>
+                        <td>${document.getElementById('itemType').value}</td>
+                        <td colspan="3" class="${activityNameClass}">${wrapInInput(activityInfo.name)}</td>
+                    </tr>
+                    <tr>
+                        <td>${wrapInInput('地 點')}</td>
+                        <td colspan="3">${wrapInInput(activityInfo.location)}</td>
+                    </tr>
+                    <tr>
+                        <td>${wrapInInput('日 期')}</td>
+                        <td class="date-cell">${wrapInInput(activityInfo.date)}</td>
+                        <td>${wrapInInput('時 間')}</td>
+                        <td>${wrapInInput(activityInfo.time)}</td>
+                    </tr>
+                    <tr>
+                        <td>${document.getElementById('instructorType').value}</td>
+                        <td>${wrapInInput(activityInfo.instructor)}</td>
+                        <td rowspan="2" style="text-align: center; vertical-align: middle;">
+                            ${showQRCode && activityInfo.qrUrl ? wrapInInput(qrDescription) + '<br>QR Code' : ''}
+                        </td>
+                        <td rowspan="2" style="text-align: center; vertical-align: middle;">
+                            ${showQRCode && activityInfo.qrUrl ? `<div class="qrcode-container"></div>` : ''}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>${wrapInInput('講師簽名')}</td>
+                        <td></td>
+                    </tr>
+                </table>
+                <table class="participant-table">
+                    <tr>
+                        <th>${wrapInInput('姓名')}</th>
+                        <th>${wrapInInput(mode === 'contact' ? '電話' : '簽到')}</th>
+                        <th>${wrapInInput('姓名')}</th>
+                        <th>${wrapInInput(mode === 'contact' ? '電話' : '簽到')}</th>
+                    </tr>
+            `;
+
+            // 生成參與者列表
+            for (let i = 0; i < 20; i += 2) {
+                tableHTML += '<tr>';
+                for (let j = 0; j < 2; j++) {
+                    const index = i + j;
+                    const participantIndex = startIndex + index;
+                    const displayNumber = startNumber + participantIndex; // 使用自訂起始序號
+                    
+                    if (participantIndex < participants.length) {
+                        const participantInfo = participants[participantIndex].trim();
+                        const [name, phone] = participantInfo.split(/\s{2,}|\s+(?=\d)/);
+                        tableHTML += `<td>${wrapInInput(displayNumber + '.' + (name || ''))}</td>`;
+                        tableHTML += mode === 'contact' ? `<td>${wrapInInput(phone || '')}</td>` : '<td></td>';
+                    } else {
+                        // 空白行不顯示序號
+                        tableHTML += `<td>${wrapInInput('')}</td><td>${wrapInInput('')}</td>`;
+                    }
+                }
+                tableHTML += '</tr>';
+            }
+
+            tableHTML += '</table>';
+            return tableHTML;
+        }
+
+        function generatePDF() {
+            if (!validateInput()) return;
+
+            // 如果編輯模式啟用，先提醒用戶
+            if (editModeEnabled) {
+                if (!confirm('目前為編輯模式，生成的PDF將包含編輯後的內容。是否繼續？')) {
+                    return;
+                }
+            }
+
+            showLoading(true);
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const pages = document.querySelectorAll('.a4-page');
+            let currentPage = 0;
+
+            function processNextPage() {
+                if (currentPage < pages.length) {
+                    html2canvas(pages[currentPage], {
+                        scale: 2,
+                        useCORS: true,
+                        allowTaint: true
+                    }).then(canvas => {
+                        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                        const pageWidth = doc.internal.pageSize.getWidth();
+                        const pageHeight = doc.internal.pageSize.getHeight();
+
+                        if (currentPage > 0) {
+                            doc.addPage();
+                        }
+
+                        doc.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight);
+                        currentPage++;
+                        processNextPage();
+                    });
+                } else {
+                    doc.save("活動簽到表.pdf");
+                    showLoading(false);
+                    showMessage('PDF生成成功！');
+                }
+            }
+
+            processNextPage();
+        }
+
+        function printTables() {
+            if (!validateInput()) return;
+            
+            // 如果編輯模式啟用，先提醒用戶
+            if (editModeEnabled) {
+                if (!confirm('目前為編輯模式，列印將包含編輯後的內容。是否繼續？')) {
+                    return;
+                }
+            }
+            
+            window.print();
+        }
+
+        function setDefaultQR() {
+            document.getElementById('qrDescription').value = '聯絡我們';
+            document.getElementById('qrUrl').value = 'https://portaly.cc/shulincc';
+            showQRCode = true;
+            const qrButton = document.getElementById('toggleQRCode');
+            qrButton.textContent = '顯示 QR 碼';
+            qrButton.classList.add('active');
+            qrButton.disabled = false;
+            generateTables(); // 重新生成表格以更新 QR 碼
+            showMessage('已設置預設QR碼');
+        }
+
+        function toggleEditMode() {
+            editModeEnabled = !editModeEnabled;
+            const button = document.getElementById('editModeButton');
+            const saveButton = document.getElementById('saveEditsButton');
+            
+            button.textContent = editModeEnabled ? '禁用編輯模式' : '啟用編輯模式';
+            button.classList.toggle('active');
+            
+            // 顯示或隱藏儲存按鈕
+            saveButton.style.display = editModeEnabled ? 'inline-block' : 'none';
+            
+            document.getElementById('pagesContainer').classList.toggle('editable-mode');
+            generateTables(); // 重新生成表格以應用編輯模式
+            
+            if (editModeEnabled) {
+                showMessage('編輯模式已啟用，您可以直接在表格中修改內容');
+            } else {
+                showMessage('編輯模式已禁用');
+            }
+        }
+
+        // 修改 formatDate 函數
+        function formatDate(date) {
+            const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+            const rocYear = date.getFullYear() - 1911;
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const weekday = weekdays[date.getDay()];
+            
+            return `${rocYear}年${month.toString().padStart(2, '0')}月${day.toString().padStart(2, '0')}日 星期${weekday}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.getElementById('dateInput');
+            const formattedDate = document.getElementById('formattedDate');
+
+            dateInput.addEventListener('change', function() {
+                if (this.value) {
+                    const selectedDate = new Date(this.value);
+                    formattedDate.value = formatDate(selectedDate);
+                } else {
+                    formattedDate.value = '';
+                }
+            });
+
+            // 允許手動編輯格式化後的日期
+            formattedDate.addEventListener('input', function() {
+                // 如果手動清空日期，也清空日期選擇器
+                if (this.value.trim() === '') {
+                    dateInput.value = '';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
