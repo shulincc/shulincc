@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>活動ShowCase</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌳</text></svg>">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        #adContainer {
+            width: 100%;
+            height: calc(100% - 50px);
+            position: relative;
+            overflow: hidden;
+        }
+        .adImage {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1s;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .adImage.active {
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 100;
+        }
+        .adImage.static {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .adImage.static::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--bg-image);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: blur(20px);
+            z-index: 0;
+            pointer-events: none;
+        }
+        .adImage img {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: auto;
+        }
+        
+        /* YouTube和iframe 100%填滿 */
+        .adImage.youtube,
+        .adImage.youtube-live,
+        .adImage.canva,
+        .adImage.canva-video,
+        .adImage.pdf {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .adImage.youtube iframe,
+        .adImage.youtube-live iframe,
+        .adImage.canva iframe,
+        .adImage.canva-video iframe,
+        .adImage.pdf iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            pointer-events: auto;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .note-overlay {
+            position: absolute;
+            bottom: 70px;
+            left: 20px;
+            width: calc(25% - 40px);
+            max-height: calc(25vh - 40px);
+            background-color: rgba(0, 0, 0, 0.4);
+            color: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.4;
+            z-index: 10;
+            backdrop-filter: blur(3px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+            overflow-y: auto;
+            overflow-x: hidden;
+            pointer-events: auto;
+        }
+        
+        .note-overlay.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .note-overlay .note-content {
+            word-wrap: break-word;
+            word-break: break-word;
+            hyphens: auto;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .note-scroll-container {
+            position: relative;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .note-scroll-text {
+            position: relative;
+            animation: noteVerticalScroll linear infinite;
+            animation-play-state: paused;
+        }
+        
+        .note-overlay.scrolling .note-scroll-text {
+            animation-play-state: running;
+        }
+        
+        @keyframes noteVerticalScroll {
+            0% { transform: translateY(100%); }
+            10% { transform: translateY(100%); }
+            90% { transform: translateY(-100%); }
+            100% { transform: translateY(-100%); }
+        }
+        
+        .note-overlay.small-text {
+            font-size: 12px;
+            line-height: 1.3;
+        }
+        
+        .note-overlay.extra-small-text {
+            font-size: 11px;
+            line-height: 1.2;
+        }
+        
+        .note-overlay::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .note-overlay::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+        
+        .note-overlay::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+        }
+        
+        .note-overlay::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .qr-overlay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.4);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            z-index: 15;
+            backdrop-filter: blur(3px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.5s ease;
+            text-align: center;
+            max-width: 180px;
+            pointer-events: auto;
+        }
+        
+        .qr-overlay.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .qr-overlay .qr-title {
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 8px;
+            color: #ffd700;
+        }
+        
+        .qr-overlay .qr-code {
+            background-color: white;
+            padding: 6px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 6px;
+            line-height: 0;
+        }
+        
+        .qr-overlay .qr-code img {
+            display: block;
+            width: 100px;
+            height: 100px;
+            border: none;
+        }
+        
+        .qr-overlay .qr-fallback {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            line-height: 1.2;
+            word-break: break-all;
+            max-width: 120px;
+        }
+        
+        .qr-overlay .qr-hint {
+            font-size: 11px;
+            color: #ccc;
+            line-height: 1.2;
+        }
+
+        #bottomBar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+        #marquee {
+            flex-grow: 1;
+            height: 50px;
+            overflow: hidden;
+            position: relative;
+        }
+        #marqueeText {
+            position: absolute;
+            white-space: nowrap;
+            color: #fff;
+            animation: marquee 20s linear infinite;
+            font-size: 24px;
+            line-height: 50px;
+        }
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        #clock {
+            color: #fff;
+            font-size: 24px;
+            white-space: nowrap;
+            position: relative;
+            cursor: pointer;
+        }
+        #editButton {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        #clock:hover #editButton {
+            opacity: 0.5;
+        }
+        #passwordPrompt, #editPanel {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            z-index: 10000;
+        }
+        #editPanel {
+            width: 80%;
+            max-width: 800px;
+            height: 80%;
+            overflow-y: auto;
+        }
+        .editField {
+            margin-bottom: 10px;
+        }
+        .editField input[type="text"] {
+            width: calc(100% - 100px);
+            padding: 5px;
+        }
+        .imagePreview {
+            max-width: 100px;
+            max-height: 100px;
+            margin-right: 10px;
+        }
+        .controls-container {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        #marquee:hover .controls-container,
+        #marquee:active .controls-container,
+        .controls-container.visible {
+            opacity: 1;
+        }
+        
+        .sound-control, .video-control {
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        #backgroundVideo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        #backgroundVideo iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        #videoOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="backgroundVideo"></div>
+    <div id="videoOverlay"></div>
+    
+    <div id="adContainer"></div>
+    <div id="bottomBar">
+        <div id="clock">
+            <span id="timeDisplay"></span>
+            <button id="editButton">⚙️</button>
+        </div>
+        <div id="marquee">
+            <span id="marqueeText"></span>
+            <div class="controls-container">
+                <button id="soundControl" class="sound-control">關閉聲音</button>
+                <button id="videoControl" class="video-control">關閉背景影片</button>
+            </div>
+        </div>
+    </div>
+    <div id="passwordPrompt">
+        <input type="password" id="passwordInput" placeholder="請輸入密碼">
+        <button onclick="checkPassword()">確認</button>
+    </div>
+    <div id="editPanel">
+        <h2>編輯面板 - 版本一（簡化播放控制）</h2>
+        <div id="imageUrlInputs"></div>
+        <div class="editField">
+            <label for="marqueeInput">跑馬燈文字:</label>
+            <textarea id="marqueeInput" rows="4" style="width: 100%;"></textarea>
+        </div>
+        <div class="editField">
+            <label for="animationToggle">圖片動畫:</label>
+            <input type="checkbox" id="animationToggle">
+        </div>
+        <div class="editField">
+            <label for="backgroundVideoId">背景YouTube影片ID:</label>
+            <input type="text" id="backgroundVideoId" value="DMPUC1wlt18">
+        </div>
+        <div class="editField">
+            <p><strong>版本一特點：</strong></p>
+            <ul>
+                <li>✅ YouTube播放器簡化控制（僅保留品質調整和全螢幕）</li>
+                <li>✅ 支援YouTube連結中的開始時間（t=秒數）</li>
+                <li>✅ 徹底清理舊iframe，避免聲音殘留</li>
+                <li>✅ 100%填滿螢幕（無灰色空白）</li>
+                <li>✅ 保留Note說明框功能</li>
+                <li>✅ 保留QR碼功能</li>
+            </ul>
+            <p>支援的內容類型：</p>
+            <ul>
+                <li>圖片 (type=image)</li>
+                <li>YouTube影片 (type=youtube) - 支援 ?t=秒數 參數</li>
+                <li>YouTube直播 (type=youtube-live)</li>
+                <li>Canva設計 (type=canva)</li>
+                <li>Canva影片 (type=canva-video)</li>
+                <li>PDF文件 (type=pdf)</li>
+                <li>HTML內容 (type=html)</li>
+                <li>iframe嵌入 (type=iframe)</li>
+            </ul>
+            <p>CSV格式: url, type, duration, note, qr</p>
+        </div>
+        <button onclick="saveChanges()">保存更改</button>
+    </div>
+
+    <script>
+        const adContainer = document.getElementById('adContainer');
+        const marqueeText = document.getElementById('marqueeText');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const editButton = document.getElementById('editButton');
+        const passwordPrompt = document.getElementById('passwordPrompt');
+        const editPanel = document.getElementById('editPanel');
+        const imageUrlInputs = document.getElementById('imageUrlInputs');
+        const marqueeInput = document.getElementById('marqueeInput');
+        const animationToggle = document.getElementById('animationToggle');
+        const soundControl = document.getElementById('soundControl');
+        const videoControl = document.getElementById('videoControl');
+        const backgroundVideo = document.getElementById('backgroundVideo');
+
+        // ============ 背景影片開關 ============
+        const ENABLE_BACKGROUND_VIDEO = false;  // 改為 true 即可開啟背景影片功能
+        // =====================================
+        
+        let adImages = [];
+        let marqueeTexts = [];
+        let currentIndex = 0;
+        let isAnimationEnabled = false;
+        let isSoundOn = true;
+        let isVideoOn = true;
+        let backgroundVideoId = 'DMPUC1wlt18';
+        const imagesCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZEOqe_gBbw8d7oSVZW3lIh_WOiUvm-agbyLveUt-HlcbivbjTdAAPTELRl8y2-YNkvaWOA5hRDxHL/pub?gid=0&single=true&output=csv';
+        const marqueeCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZEOqe_gBbw8d7oSVZW3lIh_WOiUvm-agbyLveUt-HlcbivbjTdAAPTELRl8y2-YNkvaWOA5hRDxHL/pub?gid=542255226&single=true&output=csv';
+        const defaultDuration = 300000;
+        let currentTimeout;
+
+        function parseCSVRow(row) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            let i = 0;
+            
+            while (i < row.length) {
+                const char = row[i];
+                
+                if (char === '"') {
+                    if (inQuotes && row[i + 1] === '"') {
+                        current += '"';
+                        i += 2;
+                        continue;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+                i++;
+            }
+            
+            result.push(current.trim());
+            return result;
+        }
+
+        function loadBackgroundVideo() {
+            const qualityParams = 'controls=1&fs=1&loop=1&playlist=' + backgroundVideoId;
+            
+            backgroundVideo.innerHTML = `
+                <iframe width="1920" height="1080"
+                        src="https://www.youtube.com/embed/${backgroundVideoId}?autoplay=1&mute=0&${qualityParams}"
+                        frameborder="0"
+                        allow="autoplay; encrypted-media"
+                        allowfullscreen
+                        style="width: 100%; height: 100%;">
+                </iframe>
+            `;
+        }
+        
+        function toggleVideo() {
+            isVideoOn = !isVideoOn;
+            videoControl.textContent = isVideoOn ? '關閉背景影片' : '開啟背景影片';
+            
+            if (isVideoOn) {
+                loadBackgroundVideo();
+            } else {
+                backgroundVideo.innerHTML = '';
+            }
+        }
+
+        function fetchData() {
+            Promise.all([
+                fetch(imagesCsvUrl).then(response => response.text()),
+                fetch(marqueeCsvUrl).then(response => response.text())
+            ]).then(([imagesData, marqueeData]) => {
+                const imageRows = imagesData.split('\n').slice(1);
+                const newAdImages = [];
+                
+                for (let i = 0; i < imageRows.length; i++) {
+                    const row = imageRows[i].trim();
+                    if (!row) continue;
+                    
+                    try {
+                        let completeRow = row;
+                        let rowIndex = i;
+                        
+                        let quoteCount = (completeRow.match(/"/g) || []).length;
+                        while (quoteCount % 2 !== 0 && rowIndex + 1 < imageRows.length) {
+                            rowIndex++;
+                            completeRow += '\n' + imageRows[rowIndex];
+                            quoteCount = (completeRow.match(/"/g) || []).length;
+                        }
+                        
+                        i = rowIndex;
+                        
+                        const columns = parseCSVRow(completeRow);
+                        
+                        const url = columns[0] ? columns[0].trim() : '';
+                        const type = columns[1] ? columns[1].trim() : '';
+                        const duration = columns[2] ? parseInt(columns[2].trim()) * 1000 : defaultDuration;
+                        let note = columns[3] ? columns[3].trim() : '';
+                        const qr = columns[4] ? columns[4].trim() : '';
+                        
+                        if (note.startsWith('"') && note.endsWith('"')) {
+                            note = note.slice(1, -1);
+                        }
+                        note = note.replace(/""/g, '"');
+                        
+                        if (url && (
+                            type === 'image' || 
+                            type === 'youtube' || 
+                            type === 'canva' || 
+                            type === 'canva-video' || 
+                            type === 'youtube-live' ||
+                            type === 'pdf' ||
+                            type === 'iframe' ||
+                            type === 'html'
+                        )) {
+                            newAdImages.push({
+                                url: url,
+                                type: type,
+                                duration: duration,
+                                note: note,
+                                qr: qr
+                            });
+                        }
+                    } catch (error) {
+                        console.error(`解析第${i+1}行失敗:`, error);
+                    }
+                }
+                
+                marqueeTexts = marqueeData.split('\n').slice(1)
+                    .map(row => {
+                        const columns = parseCSVRow(row);
+                        return columns[0] || '';
+                    })
+                    .filter(text => text.trim() !== '');
+                
+                console.log(`成功解析 ${newAdImages.length} 個廣告項目`);
+                
+                if (JSON.stringify(newAdImages) !== JSON.stringify(adImages)) {
+                    adImages = newAdImages;
+                    loadImages();
+                }
+                updateMarqueeText();
+            }).catch(error => console.error('數據獲取失敗:', error));
+        }
+
+        function generateQRCode(elementId, url) {
+            const qrContainer = document.getElementById(elementId);
+            if (!qrContainer) return;
+            
+            qrContainer.innerHTML = '<div style="color: #ccc; font-size: 10px;">生成中...</div>';
+            
+            const qrServices = [
+                { name: 'QR Server', url: `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(url)}` },
+                { name: 'Google Charts', url: `https://chart.googleapis.com/chart?chs=100x100&cht=qr&chl=${encodeURIComponent(url)}&choe=UTF-8` }
+            ];
+            
+            let currentServiceIndex = 0;
+            
+            function tryNextQRService() {
+                if (currentServiceIndex >= qrServices.length) {
+                    generateFallbackQR(qrContainer, url);
+                    return;
+                }
+                
+                const service = qrServices[currentServiceIndex];
+                
+                const qrImage = document.createElement('img');
+                qrImage.style.width = '100px';
+                qrImage.style.height = '100px';
+                qrImage.alt = 'QR Code';
+                
+                qrImage.onload = function() {
+                    qrContainer.innerHTML = '';
+                    qrContainer.appendChild(qrImage);
+                };
+                
+                qrImage.onerror = function() {
+                    currentServiceIndex++;
+                    setTimeout(tryNextQRService, 200);
+                };
+                
+                qrImage.src = service.url;
+            }
+            
+            tryNextQRService();
+        }
+        
+        function generateFallbackQR(container, url) {
+            if (typeof QRious !== 'undefined') {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const qr = new QRious({
+                        element: canvas,
+                        value: url,
+                        size: 100,
+                        background: 'white',
+                        foreground: 'black',
+                        level: 'M'
+                    });
+                    
+                    container.innerHTML = '';
+                    container.appendChild(canvas);
+                    return;
+                } catch (error) {
+                    console.error('QRious庫生成失敗:', error);
+                }
+            }
+            
+            container.innerHTML = `
+                <div class="qr-fallback">
+                    <strong>連結:</strong><br>
+                    <a href="${url}" target="_blank" style="color: #4CAF50; text-decoration: underline; font-size: 10px;">
+                        開啟連結
+                    </a>
+                </div>
+            `;
+        }
+
+        function adjustNoteFontSize(noteOverlay, noteText) {
+            const textLength = noteText.length;
+            
+            if (textLength > 400) {
+                noteOverlay.classList.add('extra-small-text');
+            } else if (textLength > 150) {
+                noteOverlay.classList.add('small-text');
+            }
+        }
+
+        function calculateScrollDuration(textLength) {
+            const baseTime = 6;
+            const additionalTime = Math.floor(textLength / 80) * 2;
+            return Math.max(baseTime, baseTime + additionalTime);
+        }
+
+        function enableNoteScroll(noteOverlay, textLength) {
+            if (textLength > 100) {
+                const scrollDuration = calculateScrollDuration(textLength);
+                const scrollText = noteOverlay.querySelector('.note-scroll-text');
+                
+                if (scrollText) {
+                    scrollText.style.animationDuration = `${scrollDuration}s`;
+                    noteOverlay.classList.add('scrolling');
+                }
+            }
+        }
+
+        function showCurrentNote() {
+            document.querySelectorAll('.note-overlay').forEach(note => {
+                note.classList.remove('show', 'scrolling');
+            });
+            document.querySelectorAll('.qr-overlay').forEach(qr => {
+                qr.classList.remove('show');
+            });
+            
+            const activeImage = document.querySelector('.adImage.active');
+            if (activeImage) {
+                const noteOverlay = activeImage.querySelector('.note-overlay');
+                if (noteOverlay) {
+                    setTimeout(() => {
+                        noteOverlay.classList.add('show');
+                        
+                        const currentItem = adImages[currentIndex];
+                        if (currentItem && currentItem.note) {
+                            setTimeout(() => {
+                                enableNoteScroll(noteOverlay, currentItem.note.length);
+                            }, 1000);
+                        }
+                    }, 500);
+                }
+                
+                const qrOverlay = activeImage.querySelector('.qr-overlay');
+                if (qrOverlay) {
+                    setTimeout(() => {
+                        qrOverlay.classList.add('show');
+                    }, 700);
+                }
+            }
+        }
+
+        function createNoteAndQRHTML(index, item) {
+            let html = '';
+            
+            if (item.note && item.note.trim() !== '') {
+                const noteClass = item.note.length > 400 ? 'note-overlay extra-small-text' : 
+                                 item.note.length > 150 ? 'note-overlay small-text' : 'note-overlay';
+                html += `
+                    <div class="${noteClass}" data-note-index="${index}">
+                        <div class="note-content">
+                            <div class="note-scroll-container">
+                                <div class="note-scroll-text">${item.note}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (item.qr && item.qr.trim() !== '') {
+                html += `
+                    <div class="qr-overlay" data-qr-index="${index}">
+                        <div class="qr-title">了解詳情</div>
+                        <div class="qr-code" id="qr-${index}"></div>
+                        <div class="qr-hint">掃描QR碼<br>獲取更多資訊</div>
+                    </div>
+                `;
+            }
+            
+            return html;
+        }
+
+        function getYouTubeId(url) {
+            let match = url.match(/(?:https?:\/\/)?(?:www\.)?youtube\.com\/channel\/([^\/\n\s]+)/);
+            if (match) return match[1];
+
+            match = url.match(/(?:https?:\/\/)?(?:www\.)?youtube\.com\/user\/([^\/\n\s]+)/);
+            if (match) return match[1];
+
+            match = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+            return match ? match[1] : null;
+        }
+
+        function extractYouTubeStartTime(url) {
+            const match = url.match(/[?&]t=(\d+)/);
+            return match ? match[1] : '';
+        }
+
+        function loadImages() {
+            adContainer.innerHTML = '';
+            
+            adImages.forEach((item, index) => {
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'adImage' + (index === 0 ? ' active' : '');
+                imgContainer.dataset.containerId = `container-${index}`;
+                if (!isAnimationEnabled) imgContainer.classList.add('static');
+
+                if (item.type === 'youtube') {
+                    imgContainer.classList.add('youtube');
+                    imgContainer.dataset.youtubeId = getYouTubeId(item.url);
+                    imgContainer.dataset.youtubeStart = extractYouTubeStartTime(item.url);
+                    if (index === 0) {
+                        loadYouTubeIframe(imgContainer, index);
+                    }
+                    imgContainer.innerHTML += createNoteAndQRHTML(index, item);
+                } else if (item.type === 'youtube-live') {
+                    imgContainer.classList.add('youtube-live');
+                    if (index === 0) {
+                        loadYouTubeLive(imgContainer, item.url, index);
+                    }
+                    imgContainer.innerHTML += createNoteAndQRHTML(index, item);
+                } else if (item.type === 'canva') {
+                    imgContainer.classList.add('canva');
+                    loadCanvaIframe(imgContainer, item.url, index);
+                } else if (item.type === 'canva-video') {
+                    imgContainer.classList.add('canva-video');
+                    loadCanvaVideo(imgContainer, item.url, index);
+                } else if (item.type === 'pdf') {
+                    imgContainer.classList.add('pdf');
+                    if (index === 0) {
+                        loadPdfIframe(imgContainer, item.url, index);
+                    }
+                    imgContainer.innerHTML += createNoteAndQRHTML(index, item);
+                } else if (item.type === 'iframe') {
+                    if (index === 0) {
+                        imgContainer.innerHTML = `
+                            <iframe src="${item.url}"
+                                    frameborder="0"
+                                    allowfullscreen
+                                    style="pointer-events: auto; width: 100%; height: 100%; position: relative; z-index: 2;">
+                            </iframe>
+                        ` + createNoteAndQRHTML(index, item);
+                    }
+                    imgContainer.innerHTML += createNoteAndQRHTML(index, item);
+                } else if (item.type === 'html') {
+                    imgContainer.innerHTML = item.url + createNoteAndQRHTML(index, item);
+                } else {
+                    const img = new Image();
+                    img.src = item.url;
+                    img.onload = () => {
+                        if (index === 0 && !isAnimationEnabled) {
+                            setImageBackground(imgContainer, img);
+                        }
+                    };
+                    img.onerror = () => console.error(`無法加載圖片: ${item.url}`);
+                    imgContainer.appendChild(img);
+                    imgContainer.innerHTML += createNoteAndQRHTML(index, item);
+                }
+
+                if (item.qr && item.qr.trim() !== '') {
+                    setTimeout(() => {
+                        generateQRCode(`qr-${index}`, item.qr);
+                    }, 200 + index * 100);
+                }
+
+                adContainer.appendChild(imgContainer);
+            });
+            
+            if (adImages.length > 0) {
+                startAutoChange();
+                showCurrentNote();
+            }
+        }
+
+        function loadYouTubeIframe(container, index) {
+            const youtubeId = container.dataset.youtubeId;
+            const startTime = container.dataset.youtubeStart || '';
+            const currentItem = adImages[index];
+            
+            const qualityParams = [
+                'controls=1',
+                'fs=1'
+            ].join('&');
+            
+            const startParam = startTime ? `&start=${startTime}` : '';
+            
+            const iframeHTML = `
+                <iframe src="https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=${isSoundOn ? '0' : '1'}${startParam}&${qualityParams}"
+                        frameborder="0"
+                        allow="autoplay; encrypted-media"
+                        allowfullscreen>
+                </iframe>
+            `;
+            
+            const existingNoteQR = container.innerHTML;
+            container.innerHTML = iframeHTML + existingNoteQR;
+            
+            if (currentItem.qr && currentItem.qr.trim() !== '') {
+                setTimeout(() => {
+                    generateQRCode(`qr-${index}`, currentItem.qr);
+                }, 300);
+            }
+        }
+
+        function loadYouTubeLive(container, url, index) {
+            const id = getYouTubeId(url);
+            if (!id) {
+                console.error(`無法從URL提取YouTube ID: ${url}`);
+                return;
+            }
+            
+            const startTime = extractYouTubeStartTime(url);
+            const currentItem = adImages[index];
+            const qualityParams = 'controls=1&fs=1';
+            const startParam = startTime ? `&start=${startTime}` : '';
+            
+            let iframeHTML = '';
+            if (url.includes('/channel/') || url.includes('/user/')) {
+                iframeHTML = `
+                    <iframe src="https://www.youtube.com/embed/live_stream?channel=${id}&autoplay=1&mute=${isSoundOn ? '0' : '1'}${startParam}&${qualityParams}"
+                            frameborder="0"
+                            allow="autoplay; encrypted-media"
+                            allowfullscreen>
+                    </iframe>
+                `;
+            } else {
+                iframeHTML = `
+                    <iframe src="https://www.youtube.com/embed/${id}?autoplay=1&mute=${isSoundOn ? '0' : '1'}${startParam}&${qualityParams}"
+                            frameborder="0"
+                            allow="autoplay; encrypted-media"
+                            allowfullscreen>
+                    </iframe>
+                `;
+            }
+            
+            const existingNoteQR = container.innerHTML;
+            container.innerHTML = iframeHTML + existingNoteQR;
+            
+            if (currentItem.qr && currentItem.qr.trim() !== '') {
+                setTimeout(() => {
+                    generateQRCode(`qr-${index}`, currentItem.qr);
+                }, 300);
+            }
+        }
+
+        function loadPdfIframe(container, url, index) {
+            const currentItem = adImages[index];
+            const iframeHTML = `
+                <iframe src="${url}#toolbar=0&navpanes=0"
+                        frameborder="0"
+                        allowfullscreen
+                        style="pointer-events: auto; width: 100%; height: 100%; position: relative; z-index: 2;">
+                </iframe>
+            `;
+            
+            const existingNoteQR = container.innerHTML;
+            container.innerHTML = iframeHTML + existingNoteQR;
+            
+            if (currentItem.qr && currentItem.qr.trim() !== '') {
+                setTimeout(() => {
+                    generateQRCode(`qr-${index}`, currentItem.qr);
+                }, 300);
+            }
+        }
+
+        function loadCanvaVideo(container, url, index) {
+            const currentItem = adImages[index];
+            const iframeHTML = `
+                <iframe src="${url}?embed&autoplay=1"
+                        allowfullscreen
+                        allow="autoplay">
+                </iframe>
+            `;
+            
+            const existingNoteQR = container.innerHTML;
+            container.innerHTML = iframeHTML + existingNoteQR;
+            
+            if (currentItem.qr && currentItem.qr.trim() !== '') {
+                setTimeout(() => {
+                    generateQRCode(`qr-${index}`, currentItem.qr);
+                }, 300);
+            }
+        }
+
+        function loadCanvaIframe(container, url, index) {
+            const currentItem = adImages[index];
+            const iframeHTML = `
+                <iframe src="${url}?embed&autoplay=1"
+                        allowfullscreen
+                        allow="autoplay">
+                </iframe>
+            `;
+            
+            const existingNoteQR = container.innerHTML;
+            container.innerHTML = iframeHTML + existingNoteQR;
+            
+            if (currentItem.qr && currentItem.qr.trim() !== '') {
+                setTimeout(() => {
+                    generateQRCode(`qr-${index}`, currentItem.qr);
+                }, 300);
+            }
+            
+            container.querySelector('iframe').onload = function() {
+                setTimeout(() => {
+                    simulateInteraction(this);
+                }, 2000);
+            };
+        }
+
+        function setImageBackground(container, img) {
+            container.style.backgroundImage = `url(${img.src})`;
+            container.style.setProperty('--bg-image', `url(${img.src})`);
+        }
+
+        function startAutoChange() {
+            clearTimeout(currentTimeout);
+            const currentItem = adImages[currentIndex];
+            currentTimeout = setTimeout(changeAd, currentItem.duration);
+        }
+
+        function changeAd() {
+            const images = document.querySelectorAll('.adImage');
+            if (images.length === 0) return;
+            
+            const previousImage = images[currentIndex];
+            
+            // 徹底清理所有舊的iframe（不只YouTube）
+            const allOldIframes = previousImage.querySelectorAll('iframe');
+            allOldIframes.forEach(iframe => {
+                try {
+                    // 先暫停播放（如果可能）
+                    iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                } catch(e) {
+                    // 跨域限制，忽略錯誤
+                }
+                // 立即設為空白並移除
+                iframe.src = 'about:blank';
+                iframe.remove();
+            });
+            
+            previousImage.classList.remove('active');
+            currentIndex = (currentIndex + 1) % images.length;
+            const newImage = images[currentIndex];
+            newImage.classList.add('active');
+
+            if (newImage.classList.contains('youtube')) {
+                loadYouTubeIframe(newImage, currentIndex);
+            } else if (newImage.classList.contains('youtube-live')) {
+                loadYouTubeLive(newImage, adImages[currentIndex].url, currentIndex);
+            } else if (newImage.classList.contains('canva')) {
+                const iframe = newImage.querySelector('iframe');
+                if (iframe && iframe.contentWindow) {
+                    setTimeout(() => {
+                        simulateInteraction(iframe);
+                    }, 2000);
+                }
+            } else if (newImage.classList.contains('canva-video')) {
+                const iframe = newImage.querySelector('iframe');
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.postMessage({ type: 'play' }, '*');
+                }
+            } else if (newImage.classList.contains('pdf')) {
+                loadPdfIframe(newImage, adImages[currentIndex].url, currentIndex);
+            } else if (adImages[currentIndex].type === 'iframe') {
+                const currentItem = adImages[currentIndex];
+                newImage.innerHTML = `
+                    <iframe src="${currentItem.url}"
+                            frameborder="0"
+                            allowfullscreen
+                            style="pointer-events: auto; width: 100%; height: 100%; position: relative; z-index: 2;">
+                    </iframe>
+                ` + createNoteAndQRHTML(currentIndex, currentItem);
+                
+                if (currentItem.qr && currentItem.qr.trim() !== '') {
+                    setTimeout(() => {
+                        generateQRCode(`qr-${currentIndex}`, currentItem.qr);
+                    }, 300);
+                }
+            } else if (!isAnimationEnabled) {
+                const img = newImage.querySelector('img');
+                if (img && img.complete) {
+                    setImageBackground(newImage, img);
+                } else if (img) {
+                    img.onload = () => setImageBackground(newImage, img);
+                }
+            }
+
+            showCurrentNote();
+            startAutoChange();
+        }
+
+        function updateMarqueeText() {
+            marqueeText.textContent = marqueeTexts.join(' | ');
+        }
+
+        function updateClock() {
+            timeDisplay.textContent = new Date().toLocaleTimeString('zh-TW');
+        }
+
+        function checkPassword() {
+            const password = document.getElementById('passwordInput').value;
+            if (password === '123') {
+                passwordPrompt.style.display = 'none';
+                showEditPanel();
+            } else {
+                alert('密碼錯誤');
+            }
+        }
+
+        function showEditPanel() {
+            imageUrlInputs.innerHTML = adImages.map((item, index) => {
+                const noteLength = item.note ? item.note.length : 0;
+                const hasQR = item.qr && item.qr.trim() !== '';
+                const isCurrentActive = index === currentIndex;
+                const startTime = item.type === 'youtube' ? extractYouTubeStartTime(item.url) : '';
+                
+                let info = `${item.type}`;
+                if (noteLength > 0) info += ` | 說明: ${noteLength}字`;
+                if (hasQR) info += ` | 📱 QR碼`;
+                if (startTime) info += ` | ⏱️ 從${startTime}秒開始`;
+                if (isCurrentActive && (item.type === 'youtube' || item.type === 'youtube-live')) {
+                    info += ` | 🎬 播放中`;
+                }
+                
+                return `
+                    <div class="editField" style="border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 10px;">
+                        <div class="imagePreview" style="display:flex;align-items:center;justify-content:center;background:#f0f0f0;font-size:10px;">${item.type}</div>
+                        <input type="text" id="imageUrl${index}" value="${item.url}" readonly style="font-size: 11px;">
+                        <div style="margin-top: 5px; font-size: 11px; color: #666;">
+                            ${info}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            marqueeInput.value = marqueeTexts.join('\n');
+            animationToggle.checked = isAnimationEnabled;
+            document.getElementById('backgroundVideoId').value = backgroundVideoId;
+            editPanel.style.display = 'block';
+        }
+
+        function saveChanges() {
+            marqueeTexts = marqueeInput.value.split('\n').filter(text => text.trim() !== '');
+            isAnimationEnabled = animationToggle.checked;
+            
+            const newVideoId = document.getElementById('backgroundVideoId').value;
+            if (newVideoId && newVideoId !== backgroundVideoId) {
+                backgroundVideoId = newVideoId;
+                if (isVideoOn) {
+                    loadBackgroundVideo();
+                }
+            }
+            
+            document.querySelectorAll('.adImage').forEach(container => {
+                if (isAnimationEnabled) {
+                    container.classList.remove('static');
+                    container.style.backgroundImage = '';
+                    container.style.removeProperty('--bg-image');
+                } else {
+                    container.classList.add('static');
+                    const img = container.querySelector('img');
+                    if (img && img.complete) {
+                        setImageBackground(container, img);
+                    } else if (img) {
+                        img.onload = () => setImageBackground(container, img);
+                    }
+                }
+            });
+            updateMarqueeText();
+            editPanel.style.display = 'none';
+        }
+
+        function toggleSound() {
+            isSoundOn = !isSoundOn;
+            soundControl.textContent = isSoundOn ? '關閉聲音' : '開啟聲音';
+            
+            const activeYouTube = document.querySelector('.adImage.active.youtube iframe');
+            if (activeYouTube) {
+                loadYouTubeIframe(document.querySelector('.adImage.active.youtube'), currentIndex);
+            }
+            
+            const bgVideoIframe = backgroundVideo.querySelector('iframe');
+            if (bgVideoIframe) {
+                bgVideoIframe.src = updateYouTubeSrc(bgVideoIframe.src, isSoundOn);
+            }
+        }
+
+        function updateYouTubeSrc(src, unmute) {
+            try {
+                const url = new URL(src);
+                url.searchParams.set('mute', unmute ? '0' : '1');
+                return url.toString();
+            } catch (e) {
+                console.error('更新YouTube URL失敗:', e);
+                return src;
+            }
+        }
+
+        function simulateInteraction(iframe) {
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                const event = new MouseEvent('mousemove', {
+                    view: iframe.contentWindow,
+                    bubbles: true,
+                    cancelable: true
+                });
+                iframeDoc.dispatchEvent(event);
+            } catch (e) {
+                console.log('無法模擬互動，可能是跨域限制');
+            }
+        }
+
+        function init() {
+            updateClock();
+            setInterval(updateClock, 1000);
+            fetchData();
+            setInterval(fetchData, 60000);
+            
+            // 根據開關決定是否載入背景影片
+            if (ENABLE_BACKGROUND_VIDEO) {
+                loadBackgroundVideo();
+            }
+            
+            editButton.addEventListener('click', function() {
+                passwordPrompt.style.display = 'block';
+            });
+            
+            soundControl.addEventListener('click', toggleSound);
+            videoControl.addEventListener('click', toggleVideo);
+            
+            const marqueeElement = document.getElementById('marquee');
+            let controlsTimeout;
+            
+            marqueeElement.addEventListener('click', function() {
+                const controlsContainer = document.querySelector('.controls-container');
+                controlsContainer.classList.add('visible');
+                
+                clearTimeout(controlsTimeout);
+                controlsTimeout = setTimeout(() => {
+                    controlsContainer.classList.remove('visible');
+                }, 5000);
+            });
+            
+            console.log('投影機大畫面系統 - 版本一（簡化播放控制 + 徹底清理iframe）初始化完成');
+            console.log('背景影片功能:', ENABLE_BACKGROUND_VIDEO ? '已開啟' : '已關閉');
+        }
+
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
