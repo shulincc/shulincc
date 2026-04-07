@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>樹林社區大學-樹林國小 課程表</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ════════════════════════════════════════
+           原始課程表樣式（完整保留）
+        ════════════════════════════════════════ */
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'Noto Sans TC','Inter','Microsoft YaHei','Segoe UI',Arial,sans-serif;
+            background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%);
+            height:100vh; padding:15px; overflow:hidden;
+        }
+        .container { width:100%; height:100%; max-width:1920px; margin:0 auto; display:flex; flex-direction:column; }
+        .header { text-align:center; margin-bottom:20px; color:white; }
+        .header h1 { font-size:2.2rem; font-weight:400; margin-bottom:5px; text-shadow:2px 2px 4px rgba(0,0,0,.3); letter-spacing:1px; }
+        .header .date {
+            font-size:1.1rem; font-weight:300; opacity:.9; letter-spacing:1px; cursor:pointer;
+            transition:all .3s ease; padding:8px 16px; border-radius:20px; display:inline-block;
+            position:relative; user-select:none;
+        }
+        .header .date:hover { opacity:1; background:rgba(255,255,255,.1); transform:translateY(-1px); box-shadow:0 4px 15px rgba(255,255,255,.1); }
+        .header .date:active { transform:translateY(0); background:rgba(255,255,255,.15); }
+        .header .date::after {
+            content:''; position:absolute; top:50%; right:-25px; transform:translateY(-50%);
+            width:0; height:0; border-left:6px solid rgba(255,255,255,.5);
+            border-top:4px solid transparent; border-bottom:4px solid transparent; opacity:0; transition:opacity .3s ease;
+        }
+        .header .date:hover::after { opacity:1; }
+        .loading { text-align:center; color:white; font-size:1.2rem; font-weight:400; margin-top:100px; }
+        .schedule-grid {
+            display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:15px;
+            flex:1; align-items:stretch; min-height:0; opacity:0; transform:translateY(10px); transition:all .5s ease;
+        }
+        .schedule-grid.loaded { opacity:1; transform:translateY(0); }
+        .schedule-grid.three-columns { grid-template-columns:1fr 1fr 1fr; }
+        .column {
+            background:rgba(255,255,255,.08); backdrop-filter:blur(15px); border-radius:16px; padding:18px;
+            border:1px solid rgba(255,255,255,.15); display:flex; flex-direction:column; min-height:0; transition:all .3s ease;
+        }
+        .column.hidden { display:none; }
+        .column-title {
+            text-align:center; color:white; font-size:1.3rem; font-weight:600; margin-bottom:12px;
+            text-shadow:1px 1px 2px rgba(0,0,0,.3); letter-spacing:1px; padding-bottom:8px;
+            border-bottom:2px solid rgba(255,255,255,.2); flex-shrink:0;
+        }
+        .classroom-container { flex:1; display:flex; flex-direction:column; gap:12px; overflow-y:auto; padding-right:3px; }
+        .classroom-container::-webkit-scrollbar { width:3px; }
+        .classroom-container::-webkit-scrollbar-track { background:rgba(255,255,255,.1); border-radius:2px; }
+        .classroom-container::-webkit-scrollbar-thumb { background:rgba(255,255,255,.3); border-radius:2px; }
+        .classroom {
+            background:linear-gradient(135deg,rgba(255,255,255,.12) 0%,rgba(255,255,255,.06) 100%);
+            border-radius:12px; padding:15px; border:1px solid rgba(255,255,255,.2);
+            transition:all .3s ease; position:relative; overflow:hidden; flex-shrink:0;
+            opacity:0; transform:translateY(20px); animation:fadeInUp .5s ease forwards;
+        }
+        .classroom.suspended { background:linear-gradient(135deg,rgba(255,87,87,.15) 0%,rgba(255,87,87,.08) 100%); border:1px solid rgba(255,87,87,.3); }
+        .classroom.suspended:hover { background:linear-gradient(135deg,rgba(255,87,87,.20) 0%,rgba(255,87,87,.12) 100%); }
+        .classroom.no-classroom { background:linear-gradient(135deg,rgba(255,149,0,.15) 0%,rgba(255,149,0,.08) 100%); border:1px solid rgba(255,149,0,.3); }
+        .classroom.no-classroom:hover { background:linear-gradient(135deg,rgba(255,149,0,.20) 0%,rgba(255,149,0,.12) 100%); }
+        .classroom.delayed { background:linear-gradient(135deg,rgba(162,89,255,.15) 0%,rgba(162,89,255,.08) 100%); border:1px solid rgba(162,89,255,.35); }
+        .classroom.delayed:hover { background:linear-gradient(135deg,rgba(162,89,255,.22) 0%,rgba(162,89,255,.12) 100%); }
+        .classroom.outdoor { background:linear-gradient(135deg,rgba(0,196,159,.15) 0%,rgba(0,196,159,.08) 100%); border:1px solid rgba(0,196,159,.35); }
+        .classroom.outdoor:hover { background:linear-gradient(135deg,rgba(0,196,159,.22) 0%,rgba(0,196,159,.12) 100%); }
+        .classroom.special-info { background:linear-gradient(135deg,rgba(138,203,235,.12) 0%,rgba(138,203,235,.06) 100%); border:1px solid rgba(138,203,235,.25); }
+        .classroom.special-info:hover { background:linear-gradient(135deg,rgba(138,203,235,.18) 0%,rgba(138,203,235,.10) 100%); }
+        .classroom:nth-child(1){animation-delay:.1s}.classroom:nth-child(2){animation-delay:.2s}
+        .classroom:nth-child(3){animation-delay:.3s}.classroom:nth-child(4){animation-delay:.4s}
+        .classroom:nth-child(5){animation-delay:.5s}.classroom:nth-child(6){animation-delay:.6s}
+        @keyframes fadeInUp { to { opacity:1; transform:translateY(0); } }
+        .classroom:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(0,0,0,.15); background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,rgba(255,255,255,.10) 100%); }
+        .classroom::before { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent); transition:left .5s ease; }
+        .classroom:hover::before { left:100%; }
+        .room-info { display:flex; align-items:flex-start; flex-wrap:wrap; gap:10px; line-height:1.2; }
+        .room-badge { display:inline-block; padding:6px 12px; border-radius:8px; font-size:1.6rem; font-weight:700; color:white; text-shadow:1px 1px 2px rgba(0,0,0,.5); flex-shrink:0; letter-spacing:.3px; }
+        .course-text { flex:1; min-width:0; color:white; font-size:2rem; font-weight:400; opacity:.95; letter-spacing:.2px; word-wrap:break-word; line-height:1.3; }
+        .suspended-badge { display:inline-block; background:linear-gradient(45deg,#ff4757,#ff6b9d); color:white; font-size:1.0rem; font-weight:700; padding:2px 6px; border-radius:5px; margin-right:6px; box-shadow:0 2px 8px rgba(255,71,87,.4); animation:suspendedGlow 2s ease-in-out infinite alternate; vertical-align:middle; }
+        @keyframes suspendedGlow { from{box-shadow:0 2px 8px rgba(255,71,87,.4)} to{box-shadow:0 2px 12px rgba(255,71,87,.7)} }
+        .no-classroom-badge { display:inline-block; background:linear-gradient(45deg,#ff9500,#ffad33); color:white; font-size:1.0rem; font-weight:700; padding:2px 6px; border-radius:5px; margin-right:6px; box-shadow:0 2px 8px rgba(255,149,0,.4); animation:ncGlow 2s ease-in-out infinite alternate; vertical-align:middle; }
+        @keyframes ncGlow { from{box-shadow:0 2px 8px rgba(255,149,0,.4)} to{box-shadow:0 2px 12px rgba(255,149,0,.7)} }
+        .delayed-badge { display:inline-block; background:linear-gradient(45deg,#a259ff,#c084fc); color:white; font-size:1.0rem; font-weight:700; padding:2px 6px; border-radius:5px; margin-right:6px; box-shadow:0 2px 8px rgba(162,89,255,.4); animation:dlGlow 2s ease-in-out infinite alternate; vertical-align:middle; }
+        @keyframes dlGlow { from{box-shadow:0 2px 8px rgba(162,89,255,.4)} to{box-shadow:0 2px 12px rgba(162,89,255,.7)} }
+        .outdoor-badge { display:inline-block; background:linear-gradient(45deg,#00c49f,#00e5b0); color:white; font-size:1.0rem; font-weight:700; padding:2px 6px; border-radius:5px; margin-right:6px; box-shadow:0 2px 8px rgba(0,196,159,.4); animation:odGlow 2s ease-in-out infinite alternate; vertical-align:middle; }
+        @keyframes odGlow { from{box-shadow:0 2px 8px rgba(0,196,159,.4)} to{box-shadow:0 2px 12px rgba(0,196,159,.7)} }
+        .special-info-badge { display:inline-block; background:linear-gradient(45deg,#26d0ce,#1a2980); color:white; font-size:.9rem; font-weight:600; padding:2px 5px; border-radius:4px; margin-right:5px; box-shadow:0 2px 6px rgba(38,208,206,.3); animation:siGlow 3s ease-in-out infinite alternate; vertical-align:middle; }
+        @keyframes siGlow { from{box-shadow:0 2px 6px rgba(38,208,206,.3)} to{box-shadow:0 2px 10px rgba(38,208,206,.6)} }
+        .new-course { position:relative; }
+        .new-badge { position:absolute; top:-6px; right:-6px; background:linear-gradient(45deg,#4ECDC4,#44A08D); color:white; font-size:.6rem; font-weight:700; padding:2px 5px; border-radius:6px; box-shadow:0 2px 8px rgba(78,205,196,.4); animation:newGlow 2s ease-in-out infinite alternate; }
+        @keyframes newGlow { from{box-shadow:0 2px 8px rgba(78,205,196,.4)} to{box-shadow:0 2px 12px rgba(78,205,196,.7)} }
+        .fourth-floor-a-low .room-badge  { background:linear-gradient(90deg,#667eea,#764ba2); }
+        .fourth-floor-a-low .column-title { color:#a8c0ff; }
+        .fourth-floor-a-high .room-badge  { background:linear-gradient(90deg,#38f9d7,#004d00); }
+        .fourth-floor-a-high .column-title { color:#7fffd4; }
+        .third-floor .room-badge  { background:linear-gradient(90deg,#f093fb,#f5576c); }
+        .third-floor .column-title { color:#ffb3d9; }
+        .other-floor .room-badge  { background:linear-gradient(90deg,#4facfe,#00f2fe); }
+        .other-floor .column-title { color:#87e7ff; }
+        .floating-particles { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:-1; }
+        .particle { position:absolute; background:rgba(255,255,255,.03); border-radius:50%; animation:floatUp 30s infinite linear; }
+        @keyframes floatUp {
+            0%{transform:translateY(100vh) scale(0) rotate(0deg);opacity:0}
+            10%{opacity:1} 90%{opacity:1}
+            100%{transform:translateY(-100px) scale(1) rotate(360deg);opacity:0}
+        }
+        .column.dense .classroom { padding:10px; }
+        .column.dense .course-text { font-size:1.6rem; font-weight:400; }
+        .column.dense .room-badge  { font-size:1.2rem; font-weight:600; padding:4px 8px; }
+        .column.dense .suspended-badge,.column.dense .no-classroom-badge,
+        .column.dense .delayed-badge,.column.dense .outdoor-badge { font-size:.8rem; padding:1px 4px; }
+        .column.dense .special-info-badge { font-size:.75rem; padding:1px 4px; }
+        .schedule-grid.switching { opacity:.3; transform:scale(.98); }
+        .status-indicator {
+            position:fixed; top:20px; right:20px; background:rgba(0,0,0,.8); color:white;
+            padding:10px 15px; border-radius:20px; font-size:.9rem; backdrop-filter:blur(10px);
+            border:1px solid rgba(255,255,255,.1); z-index:1000; transition:all .3s ease;
+            opacity:0; transform:translateX(100%);
+        }
+        .status-indicator.show    { opacity:1; transform:translateX(0); }
+        .status-indicator.success { background:rgba(34,197,94,.8); }
+        .status-indicator.error   { background:rgba(239,68,68,.8); }
+
+        @media(max-width:1400px){
+            .schedule-grid{gap:12px} .column{padding:15px} .header h1{font-size:2rem}
+            .course-text{font-size:1.8rem} .room-badge{font-size:1.4rem}
+            .suspended-badge,.no-classroom-badge,.delayed-badge,.outdoor-badge{font-size:.9rem}
+            .special-info-badge{font-size:.8rem}
+        }
+        @media(max-width:1200px){
+            .header h1{font-size:1.8rem} .column-title{font-size:1.2rem}
+            .course-text{font-size:1.6rem} .room-badge{font-size:1.3rem;padding:5px 10px}
+            .suspended-badge,.no-classroom-badge,.delayed-badge,.outdoor-badge{font-size:.85rem;padding:2px 5px}
+            .special-info-badge{font-size:.75rem} .classroom{padding:12px}
+        }
+        @media(max-width:1024px){
+            body{padding:8px} .header h1{font-size:1.4rem;margin-bottom:3px}
+            .header .date{font-size:.9rem;padding:6px 12px} .header{margin-bottom:10px}
+            .schedule-grid{gap:8px} .column{padding:10px}
+            .column-title{font-size:1rem;margin-bottom:8px;padding-bottom:6px}
+            .course-text{font-size:1.2rem;line-height:1.2} .room-badge{font-size:1rem;padding:3px 6px}
+            .suspended-badge,.no-classroom-badge,.delayed-badge,.outdoor-badge{font-size:.75rem;padding:1px 4px}
+            .special-info-badge{font-size:.7rem;padding:1px 3px} .classroom{padding:8px} .room-info{gap:6px}
+        }
+        @media(max-width:768px){
+            body{padding:6px} .header h1{font-size:1.2rem}
+            .header .date{font-size:.8rem;padding:4px 10px} .header{margin-bottom:8px}
+            .column-title{font-size:.9rem;margin-bottom:6px;padding-bottom:4px}
+            .course-text{font-size:1rem;line-height:1.1} .room-badge{font-size:.9rem;padding:2px 5px}
+            .suspended-badge,.no-classroom-badge,.delayed-badge,.outdoor-badge{font-size:.7rem;padding:1px 4px}
+            .special-info-badge{font-size:.65rem;padding:1px 3px} .classroom{padding:6px} .column{padding:8px}
+            .schedule-grid{gap:6px}
+            .column.dense .course-text{font-size:.9rem;line-height:1.1}
+            .column.dense .room-badge{font-size:.8rem;padding:2px 4px}
+            .column.dense .suspended-badge,.column.dense .no-classroom-badge,
+            .column.dense .delayed-badge,.column.dense .outdoor-badge{font-size:.65rem;padding:1px 3px}
+            .column.dense .special-info-badge{font-size:.6rem;padding:1px 2px}
+            .column.dense .classroom{padding:5px} .column.dense .room-info{gap:4px}
+        }
+        @media(max-width:640px){
+            body{padding:5px} .header h1{font-size:1rem}
+            .header .date{font-size:.7rem;padding:3px 8px} .header{margin-bottom:6px}
+            .column-title{font-size:.8rem;margin-bottom:5px;padding-bottom:3px}
+            .course-text{font-size:.9rem;line-height:1.1} .room-badge{font-size:.8rem;padding:2px 4px}
+            .suspended-badge,.no-classroom-badge,.delayed-badge,.outdoor-badge{font-size:.65rem;padding:1px 3px}
+            .special-info-badge{font-size:.6rem;padding:1px 2px}
+            .classroom{padding:5px} .column{padding:6px} .room-info{gap:4px} .schedule-grid{gap:5px}
+            .column.dense .course-text{font-size:.8rem;line-height:1.0}
+            .column.dense .room-badge{font-size:.7rem;padding:1px 3px}
+            .column.dense .suspended-badge,.column.dense .no-classroom-badge,
+            .column.dense .delayed-badge,.column.dense .outdoor-badge{font-size:.6rem;padding:1px 2px}
+            .column.dense .special-info-badge{font-size:.55rem;padding:1px 2px}
+            .column.dense .classroom{padding:4px} .column.dense .column-title{font-size:.75rem;margin-bottom:4px}
+        }
+        @media(max-width:480px){
+            body{padding:4px} .header h1{font-size:.9rem}
+            .header .date{font-size:.6rem;padding:2px 6px} .header{margin-bottom:5px}
+            .column-title{font-size:.75rem;margin-bottom:4px;padding-bottom:2px}
+            .course-text{font-size:.8rem;line-height:1.0} .room-badge{font-size:.7rem;padding:1px 3px}
+            .suspended-badge,.no-classroom-badge,.delayed-badge,.outdoor-badge{font-size:.6rem;padding:1px 2px}
+            .special-info-badge{font-size:.55rem;padding:1px 2px}
+            .classroom{padding:4px} .column{padding:5px} .room-info{gap:3px} .schedule-grid{gap:4px}
+            .column.dense .course-text{font-size:.7rem;line-height:1.0}
+            .column.dense .room-badge{font-size:.65rem;padding:1px 2px}
+            .column.dense .suspended-badge,.column.dense .no-classroom-badge,
+            .column.dense .delayed-badge,.column.dense .outdoor-badge{font-size:.55rem;padding:1px 2px}
+            .column.dense .special-info-badge{font-size:.5rem;padding:1px 2px}
+            .column.dense .classroom{padding:3px} .column.dense .column-title{font-size:.7rem;margin-bottom:3px}
+            .column.dense .room-info{gap:2px}
+        }
+        @media(max-height:600px){
+            .header{margin-bottom:5px} .classroom{padding:4px!important} .column{padding:6px!important}
+            .course-text{font-size:.8rem!important;line-height:1.0!important} .room-badge{font-size:.7rem!important;padding:1px 3px!important}
+            .suspended-badge,.no-classroom-badge,.delayed-badge,.outdoor-badge{font-size:.6rem!important;padding:1px 2px!important}
+            .special-info-badge{font-size:.55rem!important;padding:1px 2px!important}
+            .column-title{font-size:.75rem!important;margin-bottom:4px!important}
+        }
+        @media(max-height:500px){
+            .header h1{font-size:.8rem!important} .header .date{font-size:.6rem!important;padding:2px 4px!important}
+            .header{margin-bottom:3px!important} .course-text{font-size:.7rem!important;line-height:.9!important}
+            .room-badge{font-size:.65rem!important;padding:1px 2px!important}
+            .suspended-badge,.no-classroom-badge,.delayed-badge,.outdoor-badge{font-size:.55rem!important;padding:1px 2px!important}
+            .special-info-badge{font-size:.5rem!important;padding:1px 2px!important}
+            .classroom{padding:3px!important} .column{padding:4px!important}
+            .column-title{font-size:.7rem!important;margin-bottom:3px!important;padding-bottom:2px!important}
+            .schedule-grid{gap:3px!important}
+        }
+        @media(max-width:768px) and (orientation:landscape){
+            .course-text{font-size:.9rem;line-height:1.0} .room-badge{font-size:.8rem;padding:2px 4px}
+            .suspended-badge,.no-classroom-badge,.delayed-badge,.outdoor-badge{font-size:.65rem;padding:1px 3px}
+            .classroom{padding:5px} .column-title{font-size:.8rem;margin-bottom:5px}
+        }
+
+        /* ════════════════════════════════════════
+           提醒系統樣式（新增）
+        ════════════════════════════════════════ */
+        .reminder-overlay {
+            position:fixed; inset:0; z-index:99999;
+            display:none; align-items:center; justify-content:center;
+        }
+        .reminder-overlay.active { display:flex; }
+
+        .reminder-backdrop {
+            position:absolute; inset:0;
+            backdrop-filter:blur(20px) saturate(0.5);
+            -webkit-backdrop-filter:blur(20px) saturate(0.5);
+        }
+
+        .reminder-card {
+            position:relative; z-index:1;
+            width:min(94vw, 620px);
+            border-radius:28px;
+            padding:40px 38px 32px;
+            border:1px solid rgba(255,255,255,0.15);
+            box-shadow:0 50px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06);
+            animation:reminderPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+        @keyframes reminderPop {
+            from{opacity:0;transform:translateY(40px) scale(0.92)}
+            to{opacity:1;transform:translateY(0) scale(1)}
+        }
+
+        /* 電梯卡（橘色系） */
+        #elevator-overlay .reminder-backdrop { background:rgba(120,40,10,0.6); }
+        #elevator-overlay .reminder-card     { background:linear-gradient(145deg,#3d1505 0%,#7c2d12 55%,#9a3412 100%); }
+        #elevator-overlay .reminder-title    { color:#fcd34d; }
+
+        /* 閉館檢查（深藍色系） */
+        #closing-overlay .reminder-backdrop  { background:rgba(5,15,50,0.65); }
+        #closing-overlay .reminder-card      { background:linear-gradient(145deg,#080f2e 0%,#0f2252 55%,#1a3a6e 100%); }
+        #closing-overlay .reminder-title     { color:#93c5fd; }
+
+        .reminder-icon-row {
+            display:flex; align-items:center; gap:18px; margin-bottom:22px;
+        }
+        .reminder-icon {
+            width:68px; height:68px; border-radius:18px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:32px; flex-shrink:0; position:relative;
+        }
+        #elevator-overlay .reminder-icon {
+            background:linear-gradient(135deg,#f59e0b,#ea580c);
+            box-shadow:0 8px 28px rgba(245,158,11,0.45);
+        }
+        #closing-overlay .reminder-icon {
+            background:linear-gradient(135deg,#3b82f6,#0891b2);
+            box-shadow:0 8px 28px rgba(59,130,246,0.45);
+        }
+        .reminder-icon-dot {
+            position:absolute; top:-5px; right:-5px;
+            width:18px; height:18px; border-radius:50%;
+            background:#ef4444; border:2px solid #0f172a;
+        }
+        .reminder-icon-dot::before,.reminder-icon-dot::after {
+            content:''; position:absolute; inset:-4px; border-radius:50%;
+            border:2px solid #ef4444;
+            animation:dotPulse 1.4s ease-out infinite;
+        }
+        .reminder-icon-dot::after { animation-delay:.5s; }
+        @keyframes dotPulse {
+            from{opacity:1;transform:scale(1)} to{opacity:0;transform:scale(2.4)}
+        }
+        .reminder-meta { flex:1; }
+        .reminder-label {
+            font-size:.7rem; font-weight:700; letter-spacing:3px;
+            text-transform:uppercase; opacity:.5; margin-bottom:4px;
+        }
+        .reminder-title { font-size:1.8rem; font-weight:900; letter-spacing:-.5px; line-height:1.1; }
+        .reminder-time  { font-size:.8rem; opacity:.4; margin-top:4px; letter-spacing:.5px; }
+
+        .reminder-checklist {
+            list-style:none; display:flex; flex-direction:column;
+            gap:10px; margin-bottom:28px;
+        }
+        .reminder-checklist li {
+            display:flex; align-items:center; gap:14px;
+            padding:13px 16px; border-radius:14px;
+            background:rgba(255,255,255,0.06);
+            border:1px solid rgba(255,255,255,0.08);
+            font-size:1rem; font-weight:500; line-height:1.35;
+            cursor:pointer; user-select:none;
+            transition:background .2s, opacity .2s;
+        }
+        .reminder-checklist li:hover { background:rgba(255,255,255,0.10); }
+        .reminder-checklist li.checked { opacity:.45; }
+        .r-check {
+            width:22px; height:22px; border-radius:6px; flex-shrink:0;
+            border:2px solid rgba(255,255,255,0.22);
+            display:flex; align-items:center; justify-content:center;
+            font-size:12px; font-weight:700; transition:all .2s;
+        }
+        .reminder-checklist li.checked .r-check {
+            background:#22c55e; border-color:#22c55e; color:white;
+        }
+        .r-emoji { font-size:1.1rem; flex-shrink:0; }
+
+        .reminder-btn-row { display:flex; gap:10px; }
+        .r-btn {
+            flex:1; padding:14px 16px; border-radius:13px; border:none;
+            font-family:inherit; font-size:.95rem; font-weight:700;
+            cursor:pointer; letter-spacing:.3px;
+            transition:all .2s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .r-btn:hover { transform:translateY(-2px); filter:brightness(1.12); }
+        .r-btn:active { transform:scale(0.97); }
+        .r-btn-confirm {
+            background:linear-gradient(135deg,#22c55e,#16a34a);
+            color:white; box-shadow:0 6px 20px rgba(34,197,94,.35);
+        }
+        .r-btn-snooze {
+            background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.65);
+            border:1px solid rgba(255,255,255,0.12);
+        }
+        .r-btn-snooze:hover { background:rgba(255,255,255,0.13); }
+        .r-snooze-note {
+            text-align:center; font-size:.75rem; opacity:.35;
+            margin-top:10px; letter-spacing:.5px; min-height:1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-particles"></div>
+    <div id="status-indicator" class="status-indicator">載入中...</div>
+
+    <!-- ══ 原始課程表 HTML ══ -->
+    <div class="container">
+        <div class="header">
+            <h1 id="main-title">樹林社區大學-樹林國小 課程表</h1>
+            <div class="date" id="current-day" title="點擊切換星期">載入中...</div>
+        </div>
+        <div id="loading" class="loading">正在載入課程表和特殊狀態資訊...</div>
+        <div id="schedule-grid" class="schedule-grid" style="display:none;">
+            <div class="column fourth-floor-a-low" id="fourth-floor-a-low">
+                <div class="column-title">A401~A405教室</div>
+                <div class="classroom-container" id="fourth-a-low-container"></div>
+            </div>
+            <div class="column fourth-floor-a-high" id="fourth-floor-a-high">
+                <div class="column-title">A406~A411教室</div>
+                <div class="classroom-container" id="fourth-a-high-container"></div>
+            </div>
+            <div class="column third-floor" id="third-floor">
+                <div class="column-title">三樓教室</div>
+                <div class="classroom-container" id="third-container"></div>
+            </div>
+            <div class="column other-floor" id="other-floor">
+                <div class="column-title">其他教室</div>
+                <div class="classroom-container" id="other-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ 提醒1：下午 16:30 放電梯卡 ══ -->
+    <div class="reminder-overlay" id="elevator-overlay">
+        <div class="reminder-backdrop"></div>
+        <div class="reminder-card">
+            <div class="reminder-icon-row">
+                <div class="reminder-icon">
+                    🛗
+                    <div class="reminder-icon-dot"></div>
+                </div>
+                <div class="reminder-meta">
+                    <div class="reminder-label">下午提醒 · 16:30</div>
+                    <div class="reminder-title">放電梯卡</div>
+                    <div class="reminder-time">請確認電梯卡已放置於指定位置</div>
+                </div>
+            </div>
+            <ul class="reminder-checklist" id="elevator-checklist">
+                <li onclick="toggleCheck(this)">
+                    <span class="r-emoji">🛗</span>
+                    <span class="r-check"></span>
+                    <span>電梯卡已放置於指定位置</span>
+                </li>
+            </ul>
+            <div class="reminder-btn-row">
+                <button class="r-btn r-btn-snooze" onclick="reminderSnooze('elevator',30)">30 分鐘後再提醒</button>
+                <button class="r-btn r-btn-confirm" onclick="reminderDismiss('elevator')">✓ 確認完成</button>
+            </div>
+            <div class="r-snooze-note" id="elevator-snooze-note"></div>
+        </div>
+    </div>
+
+    <!-- ══ 提醒2：晚上 21:40 閉館檢查 ══ -->
+    <div class="reminder-overlay" id="closing-overlay">
+        <div class="reminder-backdrop"></div>
+        <div class="reminder-card">
+            <div class="reminder-icon-row">
+                <div class="reminder-icon">
+                    🏫
+                    <div class="reminder-icon-dot"></div>
+                </div>
+                <div class="reminder-meta">
+                    <div class="reminder-label">閉館檢查 · 21:40</div>
+                    <div class="reminder-title">閉館前確認清單</div>
+                    <div class="reminder-time">請逐項確認後按「確認完成」</div>
+                </div>
+            </div>
+            <ul class="reminder-checklist" id="closing-checklist">
+                <li onclick="toggleCheck(this)">
+                    <span class="r-emoji">🚪</span><span class="r-check"></span><span>檢查教室</span>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <span class="r-emoji">❄️</span><span class="r-check"></span><span>冷氣卡歸還</span>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <span class="r-emoji">💡</span><span class="r-check"></span><span>投射燈充電確認</span>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <span class="r-emoji">🖥️</span><span class="r-check"></span><span>曲面螢幕充電確認</span>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <span class="r-emoji">🔑</span><span class="r-check"></span><span>鑰匙歸還</span>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <span class="r-emoji">💧</span><span class="r-check"></span><span>飲水機鑰匙歸還</span>
+                </li>
+            </ul>
+            <div class="reminder-btn-row">
+                <button class="r-btn r-btn-snooze" onclick="reminderSnooze('closing',30)">30 分鐘後再提醒</button>
+                <button class="r-btn r-btn-confirm" onclick="reminderDismiss('closing')">✓ 確認完成</button>
+            </div>
+            <div class="r-snooze-note" id="closing-snooze-note"></div>
+        </div>
+    </div>
+
+    <script>
+    /* ════════════════════════════════════════
+       原始課程表 JavaScript（完整保留）
+    ════════════════════════════════════════ */
+    let globalCourseData=null, globalSpecialStatusData=null, currentDayIndex=0;
+    const weekdays=["星期一","星期二","星期三","星期四","星期五","星期六","星期日"];
+    const icalUrl='https://calendar.google.com/calendar/ical/shulincc.org_cu0e3cio78ukn6b0jm65t66b9o%40group.calendar.google.com/public/basic.ics';
+
+    function showStatus(msg,type='info',dur=3000){
+        const el=document.getElementById('status-indicator');
+        el.textContent=msg; el.className=`status-indicator show ${type}`;
+        if(dur>0) setTimeout(()=>el.classList.remove('show'),dur);
+    }
+    function getCurrentDay(){ return ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][new Date().getDay()]; }
+    function getCurrentDayIndex(){ return weekdays.indexOf(getCurrentDay()); }
+    function fmtDate(d){ return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`; }
+    function getDateForDayIndex(i){ const t=new Date(); t.setDate(t.getDate()+(i-getCurrentDayIndex())); return t; }
+
+    function getCourseSpecialStatus(courseName,targetDate){
+        if(!globalSpecialStatusData||!globalSpecialStatusData.length) return {type:'normal'};
+        try{
+            const ds=fmtDate(targetDate);
+            for(const ev of globalSpecialStatusData){
+                if(!ev.start||fmtDate(ev.start)!==ds) continue;
+                const t=ev.summary||''; let ce='',st={type:'normal'};
+                if(t.includes('【停課】'))         {ce=t.replace('【停課】','').trim();    st={type:'suspended',   label:'停課'};}
+                else if(t.includes('【不進教室】')) {ce=t.replace('【不進教室】','').trim(); st={type:'no-classroom',label:'不進教室'};}
+                else if(t.includes('【延後開課】')) {ce=t.replace('【延後開課】','').trim(); st={type:'delayed',     label:'延後開課'};}
+                else if(t.includes('【延後】'))     {ce=t.replace('【延後】','').trim();    st={type:'delayed',     label:'延後開課'};}
+                else if(t.includes('【延】'))       {ce=t.replace('【延】','').trim();      st={type:'delayed',     label:'延後開課'};}
+                else if(t.includes('【校外】'))     {ce=t.replace('【校外】','').trim();    st={type:'outdoor',     label:'校外上課'};}
+                else if(t.includes('【老師晚到】')) {ce=t.replace('【老師晚到】','').trim(); st={type:'special-info',label:'老師晚到'};}
+                else if(t.includes('【補課】'))     {ce=t.replace('【補課】','').trim();    st={type:'special-info',label:'補課'};}
+                else if(t.includes('【教室異動】')) {ce=t.replace('【教室異動】','').trim(); st={type:'special-info',label:'教室異動'};}
+                else if(t.includes('【時間異動】')) {ce=t.replace('【時間異動】','').trim(); st={type:'special-info',label:'時間異動'};}
+                else if(t.includes('*')){const m=t.match(/^([^*]+)\*([^*]+)\*/);if(m){ce=m[1].trim();st={type:'special-info',label:m[2].trim()};}else continue;}
+                else if(t.includes('【')&&t.includes('】')){const m=t.match(/【([^】]+)】(.*)$/);if(m){ce=m[2].trim();st={type:'special-info',label:m[1].trim()};}else continue;}
+                else continue;
+                const cn=courseName.replace(/【新】/g,'').trim(), en=ce.trim();
+                if(cn===en||cn.includes(en)||en.includes(cn)||cn.split('（')[0]===en.split('（')[0]||
+                   cn.substring(0,Math.min(6,cn.length))===en.substring(0,Math.min(6,en.length))){
+                    return st;
+                }
+            }
+            return {type:'normal'};
+        }catch(e){console.error(e);return {type:'normal'};}
+    }
+
+    async function loadSpecialStatusData(){
+        showStatus('正在載入課程狀態資訊...','info',0);
+        const proxies=[
+            {name:'allorigins',url:'https://api.allorigins.win/raw?url='},
+            {name:'codetabs',url:'https://api.codetabs.com/v1/proxy?quest='},
+            {name:'cors-anywhere',url:'https://cors-anywhere.herokuapp.com/'},
+            {name:'thingproxy',url:'https://thingproxy.freeboard.io/fetch/'},
+        ];
+        for(const px of proxies){
+            try{
+                const res=await Promise.race([
+                    fetch(px.url+encodeURIComponent(icalUrl),{headers:{'Accept':'text/calendar,*/*'}}),
+                    new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),10000))
+                ]);
+                if(res.ok){const txt=await res.text();if(txt.includes('BEGIN:VCALENDAR')&&txt.includes('BEGIN:VEVENT')){const d=parseICal(txt);showStatus(`載入成功(${d.length}筆)`,'success');return d;}}
+            }catch(e){console.log(px.name,'failed',e.message);}
+        }
+        try{const res=await fetch(icalUrl);if(res.ok){const txt=await res.text();const d=parseICal(txt);showStatus(`直接載入(${d.length}筆)`,'success');return d;}}catch(e){}
+        showStatus('無法載入課程狀態，僅顯示基本課程','error');return[];
+    }
+
+    function parseICal(txt){
+        const result=[]; const lines=txt.split('\n'); let cur=null;
+        for(let line of lines){
+            line=line.trim();
+            if(line==='BEGIN:VEVENT'){cur={};}
+            else if(line==='END:VEVENT'&&cur){
+                if(cur.summary&&(cur.summary.includes('【停課】')||cur.summary.includes('【不進教室】')||
+                   cur.summary.includes('【延後開課】')||cur.summary.includes('【延後】')||cur.summary.includes('【延】')||
+                   cur.summary.includes('【校外】')||cur.summary.includes('【老師晚到】')||cur.summary.includes('【補課】')||
+                   cur.summary.includes('【教室異動】')||cur.summary.includes('【時間異動】')||
+                   cur.summary.includes('*')||cur.summary.includes('線上')||cur.summary.includes('異動')))
+                    result.push(cur);
+                cur=null;
+            }else if(cur&&line.includes(':')){
+                const[k,...vp]=line.split(':'); const v=vp.join(':');
+                if(k==='SUMMARY') cur.summary=v;
+                else if(k==='DESCRIPTION') cur.description=v;
+                else if(k.startsWith('DTSTART')) cur.start=parseICalDate(v);
+                else if(k.startsWith('DTEND'))   cur.end=parseICalDate(v);
+            }
+        }
+        return result;
+    }
+
+    function parseICalDate(s){
+        if(s.includes('T')){const c=s.replace(/[TZ]/g,'');return new Date(c.substr(0,4),c.substr(4,2)-1,c.substr(6,2),c.substr(8,2)||0,c.substr(10,2)||0);}
+        return new Date(s.substr(0,4),s.substr(4,2)-1,s.substr(6,2));
+    }
+
+    function initDayToggle(){
+        document.getElementById('current-day').addEventListener('click',()=>{
+            if(!globalCourseData) return;
+            currentDayIndex=(currentDayIndex+1)%weekdays.length;
+            const g=document.getElementById('schedule-grid');
+            g.classList.add('switching');
+            setTimeout(()=>{displaySchedule(globalCourseData,weekdays[currentDayIndex]);g.classList.remove('switching');},150);
+        });
+    }
+
+    function createCard(classroom,course,isNew,sp){
+        const div=document.createElement('div');
+        div.className=`classroom${isNew?' new-course':''}${sp.type!=='normal'?' '+sp.type:''}`;
+        let badge='';
+        if(sp.type==='suspended')    badge='<span class="suspended-badge">停課</span>';
+        else if(sp.type==='no-classroom') badge='<span class="no-classroom-badge">不進教室</span>';
+        else if(sp.type==='delayed')  badge=`<span class="delayed-badge">${sp.label||'延後開課'}</span>`;
+        else if(sp.type==='outdoor')  badge=`<span class="outdoor-badge">${sp.label||'校外上課'}</span>`;
+        else if(sp.type==='special-info') badge=`<span class="special-info-badge">${sp.label}</span>`;
+        div.innerHTML=`${isNew?'<div class="new-badge">NEW</div>':''}<div class="room-info"><span class="room-badge">${classroom}</span><span class="course-text">${badge}${course}</span></div>`;
+        return div;
+    }
+
+    function getARange(c){if(!c.startsWith('A'))return null;const n=parseInt(c.substring(1));if(n>=401&&n<=405)return 'low';if(n>=406&&n<=411)return 'high';return null;}
+
+    async function loadScheduleData(){
+        showStatus('正在載入課程資料...','info',0);
+        try{
+            const res=await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vQJOKTRij4QISmyTwOOMBkYy1f-Z3CkK419ZCTR0c2Amu7mnXNycNM7lcCwHsVldr8nqNQpTpoW5ayN/pub?gid=1336397011&single=true&output=csv');
+            const csv=await res.text(); showStatus('課程資料載入成功','success'); return parseCSV(csv);
+        }catch(e){showStatus('載入課程資料失敗','error');document.getElementById('loading').textContent='載入課程資料失敗，請重新整理頁面';return null;}
+    }
+
+    function parseCSV(csv){
+        const lines=csv.split('\n'),courses=[];
+        for(let i=2;i<lines.length;i++){
+            const row=lines[i].split(','),floor=row[1]?.trim(),classroom=row[2]?.trim();
+            if(!floor||!classroom) continue;
+            const info={floor,classroom,courses:{}};
+            for(let j=0;j<weekdays.length;j++){const c=row[3+j]?.trim();if(c&&c!==''&&c!=='#N/A'&&c!=='#REF!')info.courses[weekdays[j]]=c;}
+            courses.push(info);
+        }
+        return courses;
+    }
+
+    function displaySchedule(courses,dow){
+        document.getElementById('current-day').textContent=dow;
+        ['fourth-a-low-container','fourth-a-high-container','third-container','other-container'].forEach(id=>document.getElementById(id).innerHTML='');
+        const td=getDateForDayIndex(currentDayIndex);
+        const lo=[],hi=[],third=[],other=[];
+        courses.forEach(item=>{
+            const c=item.courses[dow]; if(!c) return;
+            if(item.classroom==='區務地下室(早)'||item.classroom==='區務地下室(下午)') return;
+            const isNew=c.includes('【新】'), sp=getCourseSpecialStatus(c,td);
+            if(item.floor==='4樓'){const r=getARange(item.classroom);if(r==='low')lo.push({classroom:item.classroom,course:c,isNew,sp});else if(r==='high')hi.push({classroom:item.classroom,course:c,isNew,sp});else other.push({classroom:item.classroom,course:c,isNew,sp});}
+            else if(item.floor==='3樓') third.push({classroom:item.classroom,course:c,isNew,sp});
+            else{const name=['B1','1樓','2樓'].includes(item.floor)?`${item.floor} ${item.classroom}`:item.classroom;other.push({classroom:name,course:c,isNew,sp});}
+        });
+        lo.forEach(i=>document.getElementById('fourth-a-low-container').appendChild(createCard(i.classroom,i.course,i.isNew,i.sp)));
+        hi.forEach(i=>document.getElementById('fourth-a-high-container').appendChild(createCard(i.classroom,i.course,i.isNew,i.sp)));
+        third.forEach(i=>document.getElementById('third-container').appendChild(createCard(i.classroom,i.course,i.isNew,i.sp)));
+        other.forEach(i=>document.getElementById('other-container').appendChild(createCard(i.classroom,i.course,i.isNew,i.sp)));
+        const aHigh=document.getElementById('fourth-floor-a-high'),grid=document.getElementById('schedule-grid');
+        if(hi.length===0){aHigh.classList.add('hidden');grid.classList.add('three-columns');}
+        else{aHigh.classList.remove('hidden');grid.classList.remove('three-columns');}
+        const cols=[{c:'fourth-a-low-container',col:'fourth-floor-a-low'},{c:'fourth-a-high-container',col:'fourth-floor-a-high'},{c:'third-container',col:'third-floor'},{c:'other-container',col:'other-floor'}];
+        function thr(){const w=window.innerWidth,h=window.innerHeight;if(w<=480||h<=500)return 2;if(w<=640||h<=600)return 3;if(w<=768)return 4;if(w<=1024)return 5;return 6;}
+        const t=thr(),nd=cols.some(({c})=>document.getElementById(c).children.length>t);
+        cols.forEach(({col})=>document.getElementById(col).classList.toggle('dense',nd));
+        document.getElementById('loading').style.display='none';
+        document.getElementById('schedule-grid').style.display='grid';
+        setTimeout(()=>document.getElementById('schedule-grid').classList.add('loaded'),50);
+    }
+
+    function createParticle(){
+        const p=document.createElement('div'); p.className='particle';
+        const size=Math.random()*25+8,dur=Math.random()*20+25;
+        p.style.cssText=`width:${size}px;height:${size}px;left:${Math.random()*100}%;animation-duration:${dur}s;animation-delay:${Math.random()*15}s`;
+        document.querySelector('.floating-particles').appendChild(p);
+        setTimeout(()=>p.remove(),dur*1000);
+    }
+
+    async function init(){
+        initDayToggle();
+        setInterval(createParticle,8000);
+        for(let i=0;i<2;i++) setTimeout(createParticle,i*4000);
+        try{
+            showStatus('正在載入課程表...','info',0);
+            const courses=await loadScheduleData(); if(!courses) throw new Error('no data');
+            globalCourseData=courses;
+            try{globalSpecialStatusData=await loadSpecialStatusData();}catch{globalSpecialStatusData=[];}
+            const ti=getCurrentDayIndex(); currentDayIndex=ti>=0?ti:0;
+            displaySchedule(courses,weekdays[currentDayIndex]); showStatus('課程表載入完成','success');
+            let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>displaySchedule(courses,weekdays[currentDayIndex]),150);});
+        }catch(e){
+            console.error(e); showStatus('載入失敗，請重新整理頁面','error');
+            document.getElementById('loading').innerHTML='<div style="color:#ff6b6b;font-size:1.8rem;text-align:center;margin-top:50px;"><p>😔 載入課程表失敗</p><p style="font-size:1.2rem;margin-top:20px;opacity:.8;">請檢查網路連線並重新整理頁面</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 20px;background:linear-gradient(45deg,#667eea,#764ba2);color:white;border:none;border-radius:8px;font-size:1rem;cursor:pointer;">重新載入</button></div>';
+        }
+    }
+    document.addEventListener('DOMContentLoaded',init);
+
+    /* ════════════════════════════════════════
+       提醒系統 JavaScript（新增）
+    ════════════════════════════════════════ */
+
+    // 提醒時間設定 [hour, minute]
+    const REMINDERS = {
+        elevator: { h: 16, m: 30 },
+        closing:  { h: 21, m: 40 }
+    };
+
+    // 台灣國定假日
+    const TW_HOLIDAYS = new Set([
+        // 2025
+        '2025-01-01','2025-01-27','2025-01-28','2025-01-29','2025-01-30','2025-01-31',
+        '2025-02-03','2025-02-04','2025-04-03','2025-04-04','2025-05-01','2025-05-31',
+        '2025-06-07','2025-09-03','2025-10-10','2025-10-31',
+        // 2026
+        '2026-01-01','2026-01-26','2026-01-27','2026-01-28','2026-01-29','2026-01-30',
+        '2026-02-17','2026-04-03','2026-04-04','2026-04-06','2026-05-01','2026-06-19',
+        '2026-09-21','2026-10-09','2026-10-10',
+    ]);
+
+    const reminderSnoozedUntil = { elevator: null, closing: null };
+    const reminderShownToday   = { elevator: null, closing: null };
+
+    function reminderTodayStr(d = new Date()) {
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    function isWorkday(d = new Date()) {
+        const dow = d.getDay();
+        if (dow === 0 || dow === 6) return false;
+        return !TW_HOLIDAYS.has(reminderTodayStr(d));
+    }
+
+    function playBell() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            [880, 1046, 1318, 1760].forEach((freq, i) => {
+                const osc = ctx.createOscillator(), gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.type = 'sine'; osc.frequency.value = freq;
+                const t = ctx.currentTime + i * 0.2;
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.28, t + 0.06);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 1.0);
+                osc.start(t); osc.stop(t + 1.0);
+            });
+        } catch(e) {}
+    }
+
+    function showReminder(id) {
+        const el = document.getElementById(id + '-overlay');
+        // 重置 checklist
+        el.querySelectorAll('.reminder-checklist li').forEach(li => {
+            li.classList.remove('checked');
+            li.querySelector('.r-check').textContent = '';
+        });
+        document.getElementById(id + '-snooze-note').textContent = '';
+        el.classList.add('active');
+        playBell();
+        navigator.vibrate && navigator.vibrate([300, 100, 300]);
+    }
+
+    function reminderDismiss(id) {
+        document.getElementById(id + '-overlay').classList.remove('active');
+    }
+
+    function reminderSnooze(id, minutes) {
+        reminderSnoozedUntil[id] = Date.now() + minutes * 60 * 1000;
+        document.getElementById(id + '-overlay').classList.remove('active');
+        // 在狀態列顯示提示
+        showStatus(`已延後 ${minutes} 分鐘後提醒`, 'info', 4000);
+    }
+
+    function toggleCheck(li) {
+        li.classList.toggle('checked');
+        const box = li.querySelector('.r-check');
+        box.textContent = li.classList.contains('checked') ? '✓' : '';
+    }
+
+    function checkReminders() {
+        if (!isWorkday()) return;
+        const now = new Date();
+        const h = now.getHours(), m = now.getMinutes();
+        const ds = reminderTodayStr(now);
+
+        Object.entries(REMINDERS).forEach(([id, time]) => {
+            if (h !== time.h || m !== time.m) return;
+            if (reminderShownToday[id] === ds) return;
+            // Snooze 期間跳過
+            if (reminderSnoozedUntil[id] && Date.now() < reminderSnoozedUntil[id]) return;
+
+            reminderShownToday[id] = ds;
+            reminderSnoozedUntil[id] = null;
+            showReminder(id);
+        });
+
+        // Snooze 到期後重新彈出
+        Object.entries(reminderSnoozedUntil).forEach(([id, until]) => {
+            if (!until || Date.now() < until) return;
+            reminderSnoozedUntil[id] = null;
+            const rem = REMINDERS[id];
+            const elapsed = (h * 60 + m) - (rem.h * 60 + rem.m);
+            // 允許在提醒時間後 60 分鐘內補彈
+            if (elapsed >= 0 && elapsed <= 60) showReminder(id);
+        });
+    }
+
+    // 每 5 秒檢查一次
+    setInterval(checkReminders, 5000);
+    </script>
+</body>
+</html>
