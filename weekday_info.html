@@ -205,7 +205,7 @@
             background: linear-gradient(135deg, rgba(255,149,0,0.20) 0%, rgba(255,149,0,0.12) 100%);
         }
 
-        /* ★ 延後開課樣式 */
+        /* 延後開課樣式 */
         .classroom.delayed {
             background: linear-gradient(135deg, rgba(162,89,255,0.15) 0%, rgba(162,89,255,0.08) 100%);
             border: 1px solid rgba(162,89,255,0.35);
@@ -215,7 +215,7 @@
             background: linear-gradient(135deg, rgba(162,89,255,0.22) 0%, rgba(162,89,255,0.12) 100%);
         }
 
-        /* ★ 校外樣式 */
+        /* 校外樣式 */
         .classroom.outdoor {
             background: linear-gradient(135deg, rgba(0,196,159,0.15) 0%, rgba(0,196,159,0.08) 100%);
             border: 1px solid rgba(0,196,159,0.35);
@@ -270,6 +270,15 @@
             left: 100%;
         }
 
+        /* ★ 修正1：有特殊狀態的卡片關閉 ::before 偽元素，避免與 badge 動畫互相干擾造成閃爍 */
+        .classroom.suspended::before,
+        .classroom.no-classroom::before,
+        .classroom.delayed::before,
+        .classroom.outdoor::before,
+        .classroom.special-info::before {
+            display: none;
+        }
+
         .room-info {
             display: flex;
             align-items: flex-start;
@@ -316,6 +325,9 @@
             box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
             animation: suspendedGlow 2s ease-in-out infinite alternate;
             vertical-align: middle;
+            /* ★ 修正1：強制 badge 獨立 GPU 合成層，避免父層 repaint 時造成閃爍 */
+            will-change: box-shadow;
+            transform: translateZ(0);
         }
 
         @keyframes suspendedGlow {
@@ -337,6 +349,9 @@
             box-shadow: 0 2px 8px rgba(255, 149, 0, 0.4);
             animation: noClassroomGlow 2s ease-in-out infinite alternate;
             vertical-align: middle;
+            /* ★ 修正1：強制 badge 獨立 GPU 合成層 */
+            will-change: box-shadow;
+            transform: translateZ(0);
         }
 
         @keyframes noClassroomGlow {
@@ -344,7 +359,7 @@
             to { box-shadow: 0 2px 12px rgba(255, 149, 0, 0.7); }
         }
 
-        /* ★ 延後開課標誌 */
+        /* 延後開課標誌 */
         .delayed-badge {
             display: inline-block;
             background: linear-gradient(45deg, #a259ff, #c084fc);
@@ -358,6 +373,9 @@
             box-shadow: 0 2px 8px rgba(162, 89, 255, 0.4);
             animation: delayedGlow 2s ease-in-out infinite alternate;
             vertical-align: middle;
+            /* ★ 修正1：強制 badge 獨立 GPU 合成層 */
+            will-change: box-shadow;
+            transform: translateZ(0);
         }
 
         @keyframes delayedGlow {
@@ -365,7 +383,7 @@
             to { box-shadow: 0 2px 12px rgba(162, 89, 255, 0.7); }
         }
 
-        /* ★ 校外標誌 */
+        /* 校外標誌 */
         .outdoor-badge {
             display: inline-block;
             background: linear-gradient(45deg, #00c49f, #00e5b0);
@@ -379,6 +397,9 @@
             box-shadow: 0 2px 8px rgba(0, 196, 159, 0.4);
             animation: outdoorGlow 2s ease-in-out infinite alternate;
             vertical-align: middle;
+            /* ★ 修正1：強制 badge 獨立 GPU 合成層 */
+            will-change: box-shadow;
+            transform: translateZ(0);
         }
 
         @keyframes outdoorGlow {
@@ -400,6 +421,9 @@
             box-shadow: 0 2px 6px rgba(38, 208, 206, 0.3);
             animation: specialInfoGlow 3s ease-in-out infinite alternate;
             vertical-align: middle;
+            /* ★ 修正1：強制 badge 獨立 GPU 合成層 */
+            will-change: box-shadow;
+            transform: translateZ(0);
         }
 
         @keyframes specialInfoGlow {
@@ -759,6 +783,35 @@
         const weekdays = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"];
         const icalUrl = 'https://calendar.google.com/calendar/ical/shulincc.org_cu0e3cio78ukn6b0jm65t66b9o%40group.calendar.google.com/public/basic.ics';
 
+        // ★ 修正2：localStorage 快取常數
+        const CACHE_KEY_CSV  = 'shulincc_csv_cache';
+        const CACHE_KEY_ICAL = 'shulincc_ical_cache';
+        const CACHE_KEY_TIME = 'shulincc_cache_time';
+        const CACHE_TTL      = 6 * 60 * 60 * 1000; // 6小時
+
+        // ★ 修正2：快取工具函式
+        function saveCache(csvData, icalData) {
+            try {
+                localStorage.setItem(CACHE_KEY_CSV,  csvData);
+                localStorage.setItem(CACHE_KEY_ICAL, icalData || '');
+                localStorage.setItem(CACHE_KEY_TIME, Date.now().toString());
+            } catch(e) {
+                console.warn('快取寫入失敗:', e);
+            }
+        }
+
+        function loadCache() {
+            try {
+                const csv  = localStorage.getItem(CACHE_KEY_CSV);
+                const ical = localStorage.getItem(CACHE_KEY_ICAL);
+                const time = parseInt(localStorage.getItem(CACHE_KEY_TIME) || '0');
+                if (!csv) return null;
+                return { csv, ical: ical || '', time, isStale: Date.now() - time > CACHE_TTL };
+            } catch(e) {
+                return null;
+            }
+        }
+
         function showStatus(message, type = 'info', duration = 3000) {
             const indicator = document.getElementById('status-indicator');
             indicator.textContent = message;
@@ -792,7 +845,6 @@
             return target;
         }
 
-        // ★ 完整特殊狀態檢查（含延後開課、校外）
         function getCourseSpecialStatus(courseName, targetDate) {
             if (!globalSpecialStatusData || globalSpecialStatusData.length === 0) {
                 return { type: 'normal' };
@@ -878,64 +930,88 @@
             }
         }
 
-        async function loadSpecialStatusData() {
-            try {
-                showStatus('正在載入課程狀態資訊...', 'info', 0);
+        // ★ 修正2：iCal 實際載入邏輯拆成獨立函式，方便套上總逾時
+        async function _doLoadSpecialStatusData() {
+            const proxyServices = [
+                { name: 'allorigins',    url: 'https://api.allorigins.win/raw?url=' },
+                { name: 'codetabs',      url: 'https://api.codetabs.com/v1/proxy?quest=' },
+                { name: 'cors-anywhere', url: 'https://cors-anywhere.herokuapp.com/' },
+                { name: 'thingproxy',    url: 'https://thingproxy.freeboard.io/fetch/' },
+            ];
 
-                const proxyServices = [
-                    { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' },
-                    { name: 'codetabs', url: 'https://api.codetabs.com/v1/proxy?quest=' },
-                    { name: 'cors-anywhere', url: 'https://cors-anywhere.herokuapp.com/' },
-                    { name: 'thingproxy', url: 'https://thingproxy.freeboard.io/fetch/' },
-                ];
-
-                for (const proxy of proxyServices) {
-                    try {
-                        console.log(`嘗試使用 ${proxy.name} 代理服務...`);
-                        const proxyUrl = proxy.url + encodeURIComponent(icalUrl);
-                        const response = await Promise.race([
-                            fetch(proxyUrl, {
-                                headers: { 'Accept': 'text/calendar,*/*' }
-                            }),
-                            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 10000))
-                        ]);
-
-                        if (response.ok) {
-                            const icalData = await response.text();
-                            if (icalData.includes('BEGIN:VCALENDAR') && icalData.includes('BEGIN:VEVENT')) {
-                                const specialStatuses = parseICalSpecialStatuses(icalData);
-                                console.log(`使用 ${proxy.name} 成功載入 ${specialStatuses.length} 筆資料`);
-                                showStatus(`載入課程狀態成功 (${specialStatuses.length} 筆資料)`, 'success');
-                                return specialStatuses;
-                            }
-                        }
-                    } catch (error) {
-                        console.log(`代理服務 ${proxy.name} 失敗:`, error.message);
-                    }
-                }
-
+            for (const proxy of proxyServices) {
                 try {
-                    console.log('嘗試直接訪問 iCal...');
-                    const response = await fetch(icalUrl);
+                    console.log(`嘗試使用 ${proxy.name} 代理服務...`);
+                    const proxyUrl = proxy.url + encodeURIComponent(icalUrl);
+                    const response = await Promise.race([
+                        fetch(proxyUrl, { headers: { 'Accept': 'text/calendar,*/*' } }),
+                        // ★ 修正2：每個 proxy 的逾時從 10000ms 縮短為 5000ms，加速失敗偵測
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+                    ]);
+
                     if (response.ok) {
                         const icalData = await response.text();
-                        const specialStatuses = parseICalSpecialStatuses(icalData);
-                        showStatus(`直接載入成功 (${specialStatuses.length} 筆資料)`, 'success');
-                        return specialStatuses;
+                        if (icalData.includes('BEGIN:VCALENDAR') && icalData.includes('BEGIN:VEVENT')) {
+                            const specialStatuses = parseICalSpecialStatuses(icalData);
+                            console.log(`使用 ${proxy.name} 成功載入 ${specialStatuses.length} 筆資料`);
+                            // ★ 修正2：成功時更新快取裡的 iCal 部分
+                            const cachedCsv = localStorage.getItem(CACHE_KEY_CSV) || '';
+                            saveCache(cachedCsv, icalData);
+                            showStatus(`載入課程狀態成功 (${specialStatuses.length} 筆資料)`, 'success');
+                            return specialStatuses;
+                        }
                     }
-                } catch (directError) {
-                    console.log('直接訪問失敗:', directError.message);
+                } catch (error) {
+                    console.log(`代理服務 ${proxy.name} 失敗:`, error.message);
+                }
+            }
+
+            // 直接訪問 iCal
+            try {
+                console.log('嘗試直接訪問 iCal...');
+                const response = await fetch(icalUrl);
+                if (response.ok) {
+                    const icalData = await response.text();
+                    const specialStatuses = parseICalSpecialStatuses(icalData);
+                    const cachedCsv = localStorage.getItem(CACHE_KEY_CSV) || '';
+                    saveCache(cachedCsv, icalData);
+                    showStatus(`直接載入成功 (${specialStatuses.length} 筆資料)`, 'success');
+                    return specialStatuses;
+                }
+            } catch (directError) {
+                console.log('直接訪問失敗:', directError.message);
+            }
+
+            throw new Error('所有載入方式都失敗');
+        }
+
+        // ★ 修正2：loadSpecialStatusData 加上 30 秒總逾時保護 + 快取救援
+        async function loadSpecialStatusData() {
+            // 總逾時 30 秒：超過即放棄，不讓 fetch 持續掛著導致電視瀏覽器踢頁面
+            const overallTimeout = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Overall timeout after 30s')), 30000)
+            );
+
+            try {
+                showStatus('正在載入課程狀態資訊...', 'info', 0);
+                return await Promise.race([_doLoadSpecialStatusData(), overallTimeout]);
+            } catch (error) {
+                console.warn('特殊狀態載入失敗或逾時:', error.message);
+
+                // ★ 修正2：失敗時嘗試從快取救援 iCal 資料
+                const cache = loadCache();
+                if (cache && cache.ical && cache.ical.includes('BEGIN:VCALENDAR')) {
+                    const ageMin = Math.round((Date.now() - cache.time) / 60000);
+                    console.log(`使用 ${ageMin} 分鐘前的 iCal 快取`);
+                    showStatus(`課程狀態使用 ${ageMin} 分鐘前快取`, 'error');
+                    return parseICalSpecialStatuses(cache.ical);
                 }
 
-                throw new Error('所有載入方式都失敗');
-            } catch (error) {
-                console.error('載入課程狀態失敗:', error);
                 showStatus('無法載入課程狀態，僅顯示基本課程', 'error');
                 return [];
             }
         }
 
-        // ★ iCal 解析（含延後/校外關鍵字過濾）
         function parseICalSpecialStatuses(icalText) {
             const specialStatuses = [];
             const lines = icalText.split('\n');
@@ -1014,7 +1090,6 @@
             });
         }
 
-        // ★ 卡片建立（含延後/校外badge）
         function createClassroomCard(classroom, course, isNew = false, specialStatus = { type: 'normal' }) {
             const statusClasses = [];
             if (isNew) statusClasses.push('new-course');
@@ -1065,15 +1140,31 @@
             return null;
         }
 
+        // ★ 修正2：loadScheduleData 加上快取讀寫
         async function loadScheduleData() {
             try {
                 showStatus('正在載入課程資料...', 'info', 0);
                 const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vQJOKTRij4QISmyTwOOMBkYy1f-Z3CkK419ZCTR0c2Amu7mnXNycNM7lcCwHsVldr8nqNQpTpoW5ayN/pub?gid=1336397011&single=true&output=csv');
                 const csvData = await response.text();
+
+                // ★ 修正2：成功時存入 CSV 快取（iCal 部分保留原有值）
+                const cachedIcal = localStorage.getItem(CACHE_KEY_ICAL) || '';
+                saveCache(csvData, cachedIcal);
+
                 showStatus('課程資料載入成功', 'success');
                 return parseCSV(csvData);
+
             } catch (error) {
-                console.error('載入課程資料失敗:', error);
+                console.error('載入課程資料失敗，嘗試使用快取:', error);
+
+                // ★ 修正2：失敗時從快取救援
+                const cache = loadCache();
+                if (cache) {
+                    const ageMin = Math.round((Date.now() - cache.time) / 60000);
+                    showStatus(`離線中，顯示 ${ageMin} 分鐘前的快取資料`, 'error');
+                    return parseCSV(cache.csv);
+                }
+
                 showStatus('載入課程資料失敗', 'error');
                 document.getElementById('loading').textContent = '載入課程資料失敗，請重新整理頁面';
                 return null;
