@@ -13,7 +13,6 @@
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: 'Noto Sans TC', 'Inter', 'Microsoft YaHei', 'Segoe UI', Arial, sans-serif;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
@@ -21,7 +20,6 @@
             padding: 15px;
             overflow: hidden;
         }
-
         .container {
             width: 100%;
             height: 100%;
@@ -30,13 +28,11 @@
             display: flex;
             flex-direction: column;
         }
-
         .header {
             text-align: center;
             margin-bottom: 20px;
             color: white;
         }
-
         .header h1 {
             font-size: 3.85rem;
             font-weight: 400;
@@ -44,7 +40,6 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
             letter-spacing: 1px;
         }
-
         .header .date {
             font-size: 1.925rem;
             font-weight: 300;
@@ -58,19 +53,16 @@
             position: relative;
             user-select: none;
         }
-
         .header .date:hover {
             opacity: 1;
             background: rgba(255, 255, 255, 0.1);
             transform: translateY(-1px);
             box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
         }
-
         .header .date:active {
             transform: translateY(0);
             background: rgba(255, 255, 255, 0.15);
         }
-
         .header .date::after {
             content: '';
             position: absolute;
@@ -85,11 +77,9 @@
             opacity: 0;
             transition: opacity 0.3s ease;
         }
-
         .header .date:hover::after {
             opacity: 1;
         }
-
         .loading {
             text-align: center;
             color: white;
@@ -97,7 +87,6 @@
             font-weight: 400;
             margin-top: 100px;
         }
-
         .schedule-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr 1fr;
@@ -109,16 +98,13 @@
             transform: translateY(10px);
             transition: all 0.5s ease;
         }
-
         .schedule-grid.loaded {
             opacity: 1;
             transform: translateY(0);
         }
-
         .schedule-grid.three-columns {
             grid-template-columns: 1fr 1fr 1fr;
         }
-
         .column {
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(15px);
@@ -130,11 +116,9 @@
             min-height: 0;
             transition: all 0.3s ease;
         }
-
         .column.hidden {
             display: none;
         }
-
         .column-title {
             text-align: center;
             color: white;
@@ -147,7 +131,6 @@
             border-bottom: 2px solid rgba(255,255,255,0.2);
             flex-shrink: 0;
         }
-
         .classroom-container {
             flex: 1;
             display: flex;
@@ -156,21 +139,17 @@
             overflow-y: auto;
             padding-right: 3px;
         }
-
         .classroom-container::-webkit-scrollbar {
             width: 3px;
         }
-
         .classroom-container::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 2px;
         }
-
         .classroom-container::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.3);
             border-radius: 2px;
         }
-
         .classroom {
             background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.06) 100%);
             border-radius: 12px;
@@ -184,77 +163,63 @@
             transform: translateY(20px);
             animation: fadeInUp 0.5s ease forwards;
         }
-
         /* 停課樣式 */
         .classroom.suspended {
             background: linear-gradient(135deg, rgba(255,87,87,0.15) 0%, rgba(255,87,87,0.08) 100%);
             border: 1px solid rgba(255,87,87,0.3);
         }
-
         .classroom.suspended:hover {
             background: linear-gradient(135deg, rgba(255,87,87,0.20) 0%, rgba(255,87,87,0.12) 100%);
         }
-
         /* 不進教室樣式 */
         .classroom.no-classroom {
             background: linear-gradient(135deg, rgba(255,149,0,0.15) 0%, rgba(255,149,0,0.08) 100%);
             border: 1px solid rgba(255,149,0,0.3);
         }
-
         .classroom.no-classroom:hover {
             background: linear-gradient(135deg, rgba(255,149,0,0.20) 0%, rgba(255,149,0,0.12) 100%);
         }
-
         /* 延後開課樣式 */
         .classroom.delayed {
             background: linear-gradient(135deg, rgba(162,89,255,0.15) 0%, rgba(162,89,255,0.08) 100%);
             border: 1px solid rgba(162,89,255,0.35);
         }
-
         .classroom.delayed:hover {
             background: linear-gradient(135deg, rgba(162,89,255,0.22) 0%, rgba(162,89,255,0.12) 100%);
         }
-
         /* 校外樣式 */
         .classroom.outdoor {
             background: linear-gradient(135deg, rgba(0,196,159,0.15) 0%, rgba(0,196,159,0.08) 100%);
             border: 1px solid rgba(0,196,159,0.35);
         }
-
         .classroom.outdoor:hover {
             background: linear-gradient(135deg, rgba(0,196,159,0.22) 0%, rgba(0,196,159,0.12) 100%);
         }
-
         /* 一般特殊資訊樣式 */
         .classroom.special-info {
             background: linear-gradient(135deg, rgba(138,203,235,0.12) 0%, rgba(138,203,235,0.06) 100%);
             border: 1px solid rgba(138,203,235,0.25);
         }
-
         .classroom.special-info:hover {
             background: linear-gradient(135deg, rgba(138,203,235,0.18) 0%, rgba(138,203,235,0.10) 100%);
         }
-
         .classroom:nth-child(1) { animation-delay: 0.1s; }
         .classroom:nth-child(2) { animation-delay: 0.2s; }
         .classroom:nth-child(3) { animation-delay: 0.3s; }
         .classroom:nth-child(4) { animation-delay: 0.4s; }
         .classroom:nth-child(5) { animation-delay: 0.5s; }
         .classroom:nth-child(6) { animation-delay: 0.6s; }
-
         @keyframes fadeInUp {
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
-
         .classroom:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.10) 100%);
         }
-
         .classroom::before {
             content: '';
             position: absolute;
@@ -265,11 +230,9 @@
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
             transition: left 0.5s ease;
         }
-
         .classroom:hover::before {
             left: 100%;
         }
-
         /* ★ 修正1：有特殊狀態的卡片關閉 ::before 偽元素，避免與 badge 動畫互相干擾造成閃爍 */
         .classroom.suspended::before,
         .classroom.no-classroom::before,
@@ -278,7 +241,6 @@
         .classroom.special-info::before {
             display: none;
         }
-
         .room-info {
             display: flex;
             align-items: flex-start;
@@ -286,7 +248,6 @@
             gap: 10px;
             line-height: 1.2;
         }
-
         .room-badge {
             display: inline-block;
             padding: 6px 12px;
@@ -298,7 +259,6 @@
             flex-shrink: 0;
             letter-spacing: 0.3px;
         }
-
         .course-text {
             flex: 1;
             min-width: 0;
@@ -310,7 +270,6 @@
             word-wrap: break-word;
             line-height: 1.3;
         }
-
         /* 停課標誌 */
         .suspended-badge {
             display: inline-block;
@@ -329,12 +288,10 @@
             will-change: box-shadow;
             transform: translateZ(0);
         }
-
         @keyframes suspendedGlow {
             from { box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4); }
             to { box-shadow: 0 2px 12px rgba(255, 71, 87, 0.7); }
         }
-
         /* 不進教室標誌 */
         .no-classroom-badge {
             display: inline-block;
@@ -353,12 +310,10 @@
             will-change: box-shadow;
             transform: translateZ(0);
         }
-
         @keyframes noClassroomGlow {
             from { box-shadow: 0 2px 8px rgba(255, 149, 0, 0.4); }
             to { box-shadow: 0 2px 12px rgba(255, 149, 0, 0.7); }
         }
-
         /* 延後開課標誌 */
         .delayed-badge {
             display: inline-block;
@@ -377,12 +332,10 @@
             will-change: box-shadow;
             transform: translateZ(0);
         }
-
         @keyframes delayedGlow {
             from { box-shadow: 0 2px 8px rgba(162, 89, 255, 0.4); }
             to { box-shadow: 0 2px 12px rgba(162, 89, 255, 0.7); }
         }
-
         /* 校外標誌 */
         .outdoor-badge {
             display: inline-block;
@@ -401,12 +354,10 @@
             will-change: box-shadow;
             transform: translateZ(0);
         }
-
         @keyframes outdoorGlow {
             from { box-shadow: 0 2px 8px rgba(0, 196, 159, 0.4); }
             to { box-shadow: 0 2px 12px rgba(0, 196, 159, 0.7); }
         }
-
         /* 一般特殊資訊標誌 */
         .special-info-badge {
             display: inline-block;
@@ -425,16 +376,13 @@
             will-change: box-shadow;
             transform: translateZ(0);
         }
-
         @keyframes specialInfoGlow {
             from { box-shadow: 0 2px 6px rgba(38, 208, 206, 0.3); }
             to { box-shadow: 0 2px 10px rgba(38, 208, 206, 0.6); }
         }
-
         .new-course {
             position: relative;
         }
-
         .new-badge {
             position: absolute;
             top: -6px;
@@ -449,48 +397,38 @@
             box-shadow: 0 2px 8px rgba(78, 205, 196, 0.4);
             animation: glow 2s ease-in-out infinite alternate;
         }
-
         @keyframes glow {
             from { box-shadow: 0 2px 8px rgba(78, 205, 196, 0.4); }
             to { box-shadow: 0 2px 12px rgba(78, 205, 196, 0.7); }
         }
-
         /* A401~A405教室配色 */
         .fourth-floor-a-low .room-badge {
             background: linear-gradient(90deg, #667eea, #764ba2);
         }
-
         .fourth-floor-a-low .column-title {
             color: #a8c0ff;
         }
-
         /* A406~A411教室配色 */
         .fourth-floor-a-high .room-badge {
             background: linear-gradient(90deg,#38f9d7, #004d00);
         }
-
         .fourth-floor-a-high .column-title {
             color: #7fffd4;
         }
-
         /* 三樓配色 */
         .third-floor .room-badge {
             background: linear-gradient(90deg, #f093fb, #f5576c);
         }
-
         .third-floor .column-title {
             color: #ffb3d9;
         }
-
         /* 其他樓層配色 */
         .other-floor .room-badge {
             background: linear-gradient(90deg, #4facfe, #00f2fe);
         }
-
         .other-floor .column-title {
             color: #87e7ff;
         }
-
         .floating-particles {
             position: fixed;
             top: 0;
@@ -500,14 +438,12 @@
             pointer-events: none;
             z-index: -1;
         }
-
         .particle {
             position: absolute;
             background: rgba(255,255,255,0.03);
             border-radius: 50%;
             animation: float 30s infinite linear;
         }
-
         @keyframes float {
             0% {
                 transform: translateY(100vh) scale(0) rotate(0deg);
@@ -524,23 +460,19 @@
                 opacity: 0;
             }
         }
-
         /* 動態調整：當課程較多時縮小 */
         .column.dense .classroom {
             padding: 10px;
         }
-
         .column.dense .course-text {
             font-size: 2.8rem;
             font-weight: 400;
         }
-
         .column.dense .room-badge {
             font-size: 2.1rem;
             font-weight: 600;
             padding: 4px 8px;
         }
-
         .column.dense .suspended-badge,
         .column.dense .no-classroom-badge,
         .column.dense .delayed-badge,
@@ -548,18 +480,15 @@
             font-size: 1.4rem;
             padding: 3px 6px;
         }
-
         .column.dense .special-info-badge {
             font-size: 1.2rem;
             padding: 2px 5px;
         }
-
         /* 添加切換動畫 */
         .schedule-grid.switching {
             opacity: 0.3;
             transform: scale(0.98);
         }
-
         /* 載入狀態指示器 */
         .status-indicator {
             position: fixed;
@@ -577,20 +506,16 @@
             opacity: 0;
             transform: translateX(100%);
         }
-
         .status-indicator.show {
             opacity: 1;
             transform: translateX(0);
         }
-
         .status-indicator.success {
             background: rgba(34, 197, 94, 0.8);
         }
-
         .status-indicator.error {
             background: rgba(239, 68, 68, 0.8);
         }
-
         @media (max-width: 1400px) {
             .schedule-grid { gap: 12px; }
             .column { padding: 15px; }
@@ -600,7 +525,6 @@
             .suspended-badge, .no-classroom-badge, .delayed-badge, .outdoor-badge { font-size: 1.6rem; }
             .special-info-badge { font-size: 1.4rem; }
         }
-
         @media (max-width: 1200px) {
             .header h1 { font-size: 3.15rem; }
             .column-title { font-size: 2.1rem; }
@@ -610,7 +534,6 @@
             .special-info-badge { font-size: 1.3rem; padding: 2px 6px; }
             .classroom { padding: 12px; }
         }
-
         @media (max-width: 1024px) {
             body { padding: 8px; }
             .header h1 { font-size: 2.45rem; margin-bottom: 3px; }
@@ -626,7 +549,6 @@
             .classroom { padding: 8px; }
             .room-info { gap: 6px; }
         }
-
         @media (max-width: 768px) {
             body { padding: 6px; }
             .header h1 { font-size: 2.1rem; }
@@ -650,7 +572,6 @@
             .column.dense .classroom { padding: 5px; }
             .column.dense .room-info { gap: 4px; }
         }
-
         @media (max-width: 640px) {
             body { padding: 5px; }
             .header h1 { font-size: 1.75rem; }
@@ -675,7 +596,6 @@
             .column.dense .classroom { padding: 4px; }
             .column.dense .column-title { font-size: 1.3125rem; margin-bottom: 4px; }
         }
-
         @media (max-width: 480px) {
             body { padding: 4px; }
             .header h1 { font-size: 1.575rem; }
@@ -701,7 +621,6 @@
             .column.dense .column-title { font-size: 1.225rem; margin-bottom: 3px; }
             .column.dense .room-info { gap: 2px; }
         }
-
         @media (max-height: 600px) {
             .header { margin-bottom: 5px; }
             .classroom { padding: 4px !important; }
@@ -712,7 +631,6 @@
             .special-info-badge { font-size: 0.8rem !important; padding: 1px 2px !important; }
             .column-title { font-size: 1.3125rem !important; margin-bottom: 4px !important; }
         }
-
         @media (max-height: 500px) {
             .header h1 { font-size: 1.4rem !important; }
             .header .date { font-size: 1.05rem !important; padding: 2px 4px !important; }
@@ -726,7 +644,6 @@
             .column-title { font-size: 1.225rem !important; margin-bottom: 3px !important; padding-bottom: 2px !important; }
             .schedule-grid { gap: 3px !important; }
         }
-
         @media (max-width: 768px) and (orientation: landscape) {
             .course-text { font-size: 1.575rem; line-height: 1.0; }
             .room-badge { font-size: 1.4rem; padding: 2px 4px; }
@@ -738,57 +655,52 @@
 </head>
 <body>
     <div class="floating-particles"></div>
-    
+
     <div id="status-indicator" class="status-indicator">
         載入中...
     </div>
-    
+
     <div class="container">
         <div class="header">
             <h1 id="main-title">樹林社區大學-樹林國小 課程表</h1>
             <div class="date" id="current-day" title="點擊切換星期">載入中...</div>
         </div>
-
         <div id="loading" class="loading">
             正在載入課程表和特殊狀態資訊...
         </div>
-
         <div id="schedule-grid" class="schedule-grid" style="display: none;">
             <div class="column fourth-floor-a-low" id="fourth-floor-a-low">
                 <div class="column-title">A401~A405教室</div>
                 <div class="classroom-container" id="fourth-a-low-container"></div>
             </div>
-
             <div class="column fourth-floor-a-high" id="fourth-floor-a-high">
                 <div class="column-title">A406~A411教室</div>
                 <div class="classroom-container" id="fourth-a-high-container"></div>
             </div>
-
             <div class="column third-floor" id="third-floor">
                 <div class="column-title">三樓教室</div>
                 <div class="classroom-container" id="third-container"></div>
             </div>
-
             <div class="column other-floor" id="other-floor">
                 <div class="column-title">其他教室</div>
                 <div class="classroom-container" id="other-container"></div>
             </div>
         </div>
     </div>
-
     <script>
         let globalCourseData = null;
         let globalSpecialStatusData = null;
         let currentDayIndex = 0;
         const weekdays = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"];
         const icalUrl = 'https://calendar.google.com/calendar/ical/shulincc.org_cu0e3cio78ukn6b0jm65t66b9o%40group.calendar.google.com/public/basic.ics';
-
+        // ★ 修正3：改用自架 Cloudflare Worker 代理，取代不穩定/已失效的公用 CORS 代理鏈
+        // 部署完 ical-proxy-worker.js 後，把下面網址換成你自己的 Worker 網址
+        const icalProxyUrl = 'https://shulincc-ics-proxy.mail-25e.workers.dev/';
         // ★ 修正2：localStorage 快取常數
         const CACHE_KEY_CSV  = 'shulincc_csv_cache';
         const CACHE_KEY_ICAL = 'shulincc_ical_cache';
         const CACHE_KEY_TIME = 'shulincc_cache_time';
         const CACHE_TTL      = 6 * 60 * 60 * 1000; // 6小時
-
         // ★ 修正2：快取工具函式
         function saveCache(csvData, icalData) {
             try {
@@ -799,7 +711,6 @@
                 console.warn('快取寫入失敗:', e);
             }
         }
-
         function loadCache() {
             try {
                 const csv  = localStorage.getItem(CACHE_KEY_CSV);
@@ -811,7 +722,6 @@
                 return null;
             }
         }
-
         function showStatus(message, type = 'info', duration = 3000) {
             const indicator = document.getElementById('status-indicator');
             indicator.textContent = message;
@@ -820,23 +730,19 @@
                 setTimeout(() => indicator.classList.remove('show'), duration);
             }
         }
-
         function getCurrentDay() {
             const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
             return days[new Date().getDay()];
         }
-
         function getCurrentDayIndex() {
             return weekdays.indexOf(getCurrentDay());
         }
-
         function formatDateForComparison(date) {
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const day = String(date.getDate()).padStart(2, '0');
             return `${year}/${month}/${day}`;
         }
-
         function getDateForDayIndex(dayIndex) {
             const today = new Date();
             const diff = dayIndex - getCurrentDayIndex();
@@ -844,24 +750,19 @@
             target.setDate(today.getDate() + diff);
             return target;
         }
-
         function getCourseSpecialStatus(courseName, targetDate) {
             if (!globalSpecialStatusData || globalSpecialStatusData.length === 0) {
                 return { type: 'normal' };
             }
-
             try {
                 const targetDateStr = formatDateForComparison(targetDate);
-
                 for (const statusEvent of globalSpecialStatusData) {
                     if (!statusEvent.start) continue;
                     const eventDateStr = formatDateForComparison(statusEvent.start);
                     if (eventDateStr !== targetDateStr) continue;
-
                     const eventTitle = statusEvent.summary || '';
                     let courseNameFromEvent = '';
                     let status = { type: 'normal' };
-
                     if (eventTitle.includes('【停課】')) {
                         courseNameFromEvent = eventTitle.replace('【停課】', '').trim();
                         status = { type: 'suspended', label: '停課' };
@@ -907,7 +808,6 @@
                     } else {
                         continue;
                     }
-
                     const normalizedCourseName = courseName.replace(/【新】/g, '').trim();
                     const normalizedEventName = courseNameFromEvent.trim();
                     const isMatch = normalizedCourseName === normalizedEventName ||
@@ -916,57 +816,41 @@
                                    normalizedCourseName.split('（')[0] === normalizedEventName.split('（')[0] ||
                                    normalizedCourseName.substring(0, Math.min(6, normalizedCourseName.length)) ===
                                    normalizedEventName.substring(0, Math.min(6, normalizedEventName.length));
-
                     if (isMatch) {
                         console.log(`特殊狀態匹配: 課程"${courseName}" 在 ${targetDateStr} 狀態為 ${status.type} (${status.label})`);
                         return status;
                     }
                 }
-
                 return { type: 'normal' };
             } catch (error) {
                 console.error('檢查課程特殊狀態時發生錯誤:', error);
                 return { type: 'normal' };
             }
         }
-
-        // ★ 修正2：iCal 實際載入邏輯拆成獨立函式，方便套上總逾時
+        // ★ 修正3：iCal 實際載入邏輯改用自架 Worker 代理，失敗才退回直接連線（多半會被 CORS 擋下，僅作保底）
         async function _doLoadSpecialStatusData() {
-            const proxyServices = [
-                { name: 'allorigins',    url: 'https://api.allorigins.win/raw?url=' },
-                { name: 'codetabs',      url: 'https://api.codetabs.com/v1/proxy?quest=' },
-                { name: 'cors-anywhere', url: 'https://cors-anywhere.herokuapp.com/' },
-                { name: 'thingproxy',    url: 'https://thingproxy.freeboard.io/fetch/' },
-            ];
-
-            for (const proxy of proxyServices) {
-                try {
-                    console.log(`嘗試使用 ${proxy.name} 代理服務...`);
-                    const proxyUrl = proxy.url + encodeURIComponent(icalUrl);
-                    const response = await Promise.race([
-                        fetch(proxyUrl, { headers: { 'Accept': 'text/calendar,*/*' } }),
-                        // ★ 修正2：每個 proxy 的逾時從 10000ms 縮短為 5000ms，加速失敗偵測
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
-                    ]);
-
-                    if (response.ok) {
-                        const icalData = await response.text();
-                        if (icalData.includes('BEGIN:VCALENDAR') && icalData.includes('BEGIN:VEVENT')) {
-                            const specialStatuses = parseICalSpecialStatuses(icalData);
-                            console.log(`使用 ${proxy.name} 成功載入 ${specialStatuses.length} 筆資料`);
-                            // ★ 修正2：成功時更新快取裡的 iCal 部分
-                            const cachedCsv = localStorage.getItem(CACHE_KEY_CSV) || '';
-                            saveCache(cachedCsv, icalData);
-                            showStatus(`載入課程狀態成功 (${specialStatuses.length} 筆資料)`, 'success');
-                            return specialStatuses;
-                        }
+            try {
+                console.log('透過自架代理讀取 iCal...');
+                const response = await Promise.race([
+                    fetch(icalProxyUrl, { headers: { 'Accept': 'text/calendar,*/*' } }),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 10000))
+                ]);
+                if (response.ok) {
+                    const icalData = await response.text();
+                    if (icalData.includes('BEGIN:VCALENDAR') && icalData.includes('BEGIN:VEVENT')) {
+                        const specialStatuses = parseICalSpecialStatuses(icalData);
+                        console.log(`透過自架代理成功載入 ${specialStatuses.length} 筆資料`);
+                        const cachedCsv = localStorage.getItem(CACHE_KEY_CSV) || '';
+                        saveCache(cachedCsv, icalData);
+                        showStatus(`載入課程狀態成功 (${specialStatuses.length} 筆資料)`, 'success');
+                        return specialStatuses;
                     }
-                } catch (error) {
-                    console.log(`代理服務 ${proxy.name} 失敗:`, error.message);
                 }
+                console.log(`自架代理回應異常: HTTP ${response.status}`);
+            } catch (error) {
+                console.log('自架代理失敗:', error.message);
             }
-
-            // 直接訪問 iCal
+            // 保底：直接訪問 iCal（多數情況會被 Google 的 CORS 政策擋下）
             try {
                 console.log('嘗試直接訪問 iCal...');
                 const response = await fetch(icalUrl);
@@ -981,23 +865,19 @@
             } catch (directError) {
                 console.log('直接訪問失敗:', directError.message);
             }
-
             throw new Error('所有載入方式都失敗');
         }
-
-        // ★ 修正2：loadSpecialStatusData 加上 30 秒總逾時保護 + 快取救援
+        // ★ 修正2：loadSpecialStatusData 加上總逾時保護 + 快取救援
         async function loadSpecialStatusData() {
-            // 總逾時 30 秒：超過即放棄，不讓 fetch 持續掛著導致電視瀏覽器踢頁面
+            // 總逾時 20 秒：超過即放棄，不讓 fetch 持續掛著導致電視瀏覽器踢頁面
             const overallTimeout = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Overall timeout after 30s')), 30000)
+                setTimeout(() => reject(new Error('Overall timeout after 20s')), 20000)
             );
-
             try {
                 showStatus('正在載入課程狀態資訊...', 'info', 0);
                 return await Promise.race([_doLoadSpecialStatusData(), overallTimeout]);
             } catch (error) {
                 console.warn('特殊狀態載入失敗或逾時:', error.message);
-
                 // ★ 修正2：失敗時嘗試從快取救援 iCal 資料
                 const cache = loadCache();
                 if (cache && cache.ical && cache.ical.includes('BEGIN:VCALENDAR')) {
@@ -1006,20 +886,16 @@
                     showStatus(`課程狀態使用 ${ageMin} 分鐘前快取`, 'error');
                     return parseICalSpecialStatuses(cache.ical);
                 }
-
                 showStatus('無法載入課程狀態，僅顯示基本課程', 'error');
                 return [];
             }
         }
-
         function parseICalSpecialStatuses(icalText) {
             const specialStatuses = [];
             const lines = icalText.split('\n');
             let currentEvent = null;
-
             for (let line of lines) {
                 line = line.trim();
-
                 if (line === 'BEGIN:VEVENT') {
                     currentEvent = {};
                 } else if (line === 'END:VEVENT' && currentEvent) {
@@ -1044,7 +920,6 @@
                 } else if (currentEvent && line.includes(':')) {
                     const [key, ...valueParts] = line.split(':');
                     const value = valueParts.join(':');
-
                     if (key === 'SUMMARY') {
                         currentEvent.summary = value;
                     } else if (key === 'DESCRIPTION') {
@@ -1056,11 +931,9 @@
                     }
                 }
             }
-
             console.log('解析到的特殊狀態資訊:', specialStatuses);
             return specialStatuses;
         }
-
         function parseICalDate(dateStr) {
             if (dateStr.includes('T')) {
                 const cleanDate = dateStr.replace(/[TZ]/g, '');
@@ -1075,7 +948,6 @@
                 return new Date(dateStr.substr(0, 4), dateStr.substr(4, 2) - 1, dateStr.substr(6, 2));
             }
         }
-
         function initDayToggle() {
             document.getElementById('current-day').addEventListener('click', function() {
                 if (globalCourseData) {
@@ -1089,17 +961,13 @@
                 }
             });
         }
-
         function createClassroomCard(classroom, course, isNew = false, specialStatus = { type: 'normal' }) {
             const statusClasses = [];
             if (isNew) statusClasses.push('new-course');
             if (specialStatus.type !== 'normal') statusClasses.push(specialStatus.type);
-
             const div = document.createElement('div');
             div.className = `classroom ${statusClasses.join(' ')}`;
-
             const newBadge = isNew ? '<div class="new-badge">NEW</div>' : '';
-
             let statusBadge = '';
             switch (specialStatus.type) {
                 case 'suspended':
@@ -1120,7 +988,6 @@
                 default:
                     statusBadge = '';
             }
-
             div.innerHTML = `
                 ${newBadge}
                 <div class="room-info">
@@ -1128,10 +995,8 @@
                     <span class="course-text">${statusBadge}${course}</span>
                 </div>
             `;
-
             return div;
         }
-
         function getAClassroomRange(classroom) {
             if (!classroom.startsWith('A')) return null;
             const number = parseInt(classroom.substring(1));
@@ -1139,24 +1004,19 @@
             if (number >= 406 && number <= 411) return 'high';
             return null;
         }
-
         // ★ 修正2：loadScheduleData 加上快取讀寫
         async function loadScheduleData() {
             try {
                 showStatus('正在載入課程資料...', 'info', 0);
                 const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vQJOKTRij4QISmyTwOOMBkYy1f-Z3CkK419ZCTR0c2Amu7mnXNycNM7lcCwHsVldr8nqNQpTpoW5ayN/pub?gid=1336397011&single=true&output=csv');
                 const csvData = await response.text();
-
                 // ★ 修正2：成功時存入 CSV 快取（iCal 部分保留原有值）
                 const cachedIcal = localStorage.getItem(CACHE_KEY_ICAL) || '';
                 saveCache(csvData, cachedIcal);
-
                 showStatus('課程資料載入成功', 'success');
                 return parseCSV(csvData);
-
             } catch (error) {
                 console.error('載入課程資料失敗，嘗試使用快取:', error);
-
                 // ★ 修正2：失敗時從快取救援
                 const cache = loadCache();
                 if (cache) {
@@ -1164,13 +1024,11 @@
                     showStatus(`離線中，顯示 ${ageMin} 分鐘前的快取資料`, 'error');
                     return parseCSV(cache.csv);
                 }
-
                 showStatus('載入課程資料失敗', 'error');
                 document.getElementById('loading').textContent = '載入課程資料失敗，請重新整理頁面';
                 return null;
             }
         }
-
         function parseCSV(csvData) {
             const lines = csvData.split('\n');
             const courses = [];
@@ -1191,26 +1049,19 @@
             }
             return courses;
         }
-
         function displaySchedule(courses, dayOfWeek) {
             document.getElementById('current-day').textContent = dayOfWeek;
-
             ['fourth-a-low-container', 'fourth-a-high-container', 'third-container', 'other-container']
                 .forEach(id => document.getElementById(id).innerHTML = '');
-
             const targetDate = getDateForDayIndex(currentDayIndex);
             console.log(`顯示 ${dayOfWeek} 的課程，日期: ${formatDateForComparison(targetDate)}`);
-
             const fourthFloorALow = [], fourthFloorAHigh = [], thirdFloor = [], otherFloors = [];
-
             courses.forEach(item => {
                 const course = item.courses[dayOfWeek];
                 if (!course) return;
                 if (item.classroom === '區務地下室(早)' || item.classroom === '區務地下室(下午)') return;
-
                 const isNew = course.includes('【新】');
                 const specialStatus = getCourseSpecialStatus(course, targetDate);
-
                 if (item.floor === '4樓') {
                     const aRange = getAClassroomRange(item.classroom);
                     if (aRange === 'low') fourthFloorALow.push({ classroom: item.classroom, course, isNew, specialStatus });
@@ -1224,7 +1075,6 @@
                     otherFloors.push({ classroom: displayName, course, isNew, specialStatus });
                 }
             });
-
             fourthFloorALow.forEach(item => document.getElementById('fourth-a-low-container').appendChild(
                 createClassroomCard(item.classroom, item.course, item.isNew, item.specialStatus)));
             fourthFloorAHigh.forEach(item => document.getElementById('fourth-a-high-container').appendChild(
@@ -1233,7 +1083,6 @@
                 createClassroomCard(item.classroom, item.course, item.isNew, item.specialStatus)));
             otherFloors.forEach(item => document.getElementById('other-container').appendChild(
                 createClassroomCard(item.classroom, item.course, item.isNew, item.specialStatus)));
-
             const aHighColumn = document.getElementById('fourth-floor-a-high');
             const scheduleGrid = document.getElementById('schedule-grid');
             if (fourthFloorAHigh.length === 0) {
@@ -1243,14 +1092,12 @@
                 aHighColumn.classList.remove('hidden');
                 scheduleGrid.classList.remove('three-columns');
             }
-
             const columnData = [
                 { container: 'fourth-a-low-container', column: 'fourth-floor-a-low' },
                 { container: 'fourth-a-high-container', column: 'fourth-floor-a-high' },
                 { container: 'third-container', column: 'third-floor' },
                 { container: 'other-container', column: 'other-floor' }
             ];
-
             function getDenseThreshold() {
                 const w = window.innerWidth, h = window.innerHeight;
                 if (w <= 480 || h <= 500) return 2;
@@ -1259,7 +1106,6 @@
                 if (w <= 1024) return 5;
                 return 6;
             }
-
             let needDenseMode = false;
             const threshold = getDenseThreshold();
             columnData.forEach(({ container }) => {
@@ -1268,12 +1114,10 @@
             columnData.forEach(({ column }) => {
                 document.getElementById(column).classList.toggle('dense', needDenseMode);
             });
-
             document.getElementById('loading').style.display = 'none';
             document.getElementById('schedule-grid').style.display = 'grid';
             setTimeout(() => document.getElementById('schedule-grid').classList.add('loaded'), 50);
         }
-
         function createParticle() {
             const particle = document.createElement('div');
             particle.className = 'particle';
@@ -1287,30 +1131,25 @@
             document.querySelector('.floating-particles').appendChild(particle);
             setTimeout(() => particle.remove(), duration * 1000);
         }
-
         async function init() {
             initDayToggle();
             setInterval(createParticle, 8000);
             for (let i = 0; i < 2; i++) setTimeout(createParticle, i * 4000);
-
             try {
                 showStatus('正在載入課程表...', 'info', 0);
                 const courses = await loadScheduleData();
                 if (!courses) throw new Error('無法載入課程資料');
                 globalCourseData = courses;
-
                 try {
                     globalSpecialStatusData = await loadSpecialStatusData();
                     console.log(`特殊狀態載入完成: ${globalSpecialStatusData.length} 筆資料`);
                 } catch {
                     globalSpecialStatusData = [];
                 }
-
                 const todayIndex = getCurrentDayIndex();
                 currentDayIndex = todayIndex >= 0 ? todayIndex : 0;
                 displaySchedule(courses, weekdays[currentDayIndex]);
                 showStatus('課程表載入完成', 'success');
-
                 let resizeTimeout;
                 window.addEventListener('resize', () => {
                     clearTimeout(resizeTimeout);
@@ -1332,7 +1171,6 @@
                 `;
             }
         }
-
         document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
