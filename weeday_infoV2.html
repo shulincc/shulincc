@@ -460,6 +460,24 @@
                 opacity: 0;
             }
         }
+        /* 學員須知嵌入頁：固定在右下角、z-index 在最底層，
+           所以永遠不會蓋住課表文字（有課表卡片覆蓋的地方就自然被蓋掉，
+           只有卡片以外的空隙／邊緣會露出來）。
+           要換網址：改下面 iframe 的 src 即可。 */
+        .roomlink-frame {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            width: 34vw;
+            height: 44vh;
+            max-width: 480px;
+            max-height: 620px;
+            z-index: -1;
+            border: none;
+            border-radius: 16px 0 0 0;
+            opacity: 0.9;
+            pointer-events: none;
+        }
         /* 動態調整：當課程較多時縮小 */
         .column.dense .classroom {
             padding: 10px;
@@ -734,6 +752,9 @@
 </head>
 <body>
     <div class="floating-particles"></div>
+
+    <!-- 學員須知背景嵌入：右下角、在最底層，不會蓋住課表文字。要換網址就改這裡的 src。 -->
+    <iframe class="roomlink-frame" src="https://www.shulincc.org/roomlink" title="學員須知" loading="lazy"></iframe>
 
     <div id="status-indicator" class="status-indicator">
         載入中...
