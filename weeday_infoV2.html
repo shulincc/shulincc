@@ -766,9 +766,470 @@
             .class-sign-qr { width: 70px; height: 70px; }
             .class-sign-qr-label { font-size: 0.65rem; }
         }
+        /* ══════════ iPad 模式覆蓋（沿用 iPad 版本原本已調好的數值，非等比縮放） ══════════ */
+        body.mode-ipad .header h1 {
+            font-size: 2.2rem;
+        }
+        body.mode-ipad .header .date {
+            font-size: 1.1rem;
+        }
+        body.mode-ipad .loading {
+            font-size: 1.2rem;
+        }
+        body.mode-ipad .column-title {
+            font-size: 1.3rem;
+        }
+        body.mode-ipad .room-badge {
+            font-size: 1.6rem;
+        }
+        body.mode-ipad .course-text {
+            font-size: 2rem;
+        }
+        body.mode-ipad .suspended-badge {
+            font-size: 1.0rem;
+            padding: 2px 6px;
+            border-radius: 5px;
+            margin-right: 6px;
+        }
+        body.mode-ipad .no-classroom-badge {
+            font-size: 1.0rem;
+            padding: 2px 6px;
+            border-radius: 5px;
+            margin-right: 6px;
+        }
+        body.mode-ipad .delayed-badge {
+            font-size: 1.0rem;
+            padding: 2px 6px;
+            border-radius: 5px;
+            margin-right: 6px;
+        }
+        body.mode-ipad .outdoor-badge {
+            font-size: 1.0rem;
+            padding: 2px 6px;
+            border-radius: 5px;
+            margin-right: 6px;
+        }
+        body.mode-ipad .special-info-badge {
+            font-size: .9rem;
+            padding: 2px 5px;
+            border-radius: 4px;
+            margin-right: 5px;
+        }
+        body.mode-ipad .new-badge {
+            font-size: .6rem;
+        }
+        body.mode-ipad .column.dense .course-text {
+            font-size: 1.6rem;
+        }
+        body.mode-ipad .column.dense .room-badge {
+            font-size: 1.2rem;
+        }
+        body.mode-ipad .column.dense .suspended-badge, body.mode-ipad .column.dense .no-classroom-badge, body.mode-ipad .column.dense .delayed-badge, body.mode-ipad .column.dense .outdoor-badge {
+            font-size: .8rem;
+            padding: 1px 4px;
+        }
+        body.mode-ipad .column.dense .special-info-badge {
+            font-size: .75rem;
+            padding: 1px 4px;
+        }
+        @media (max-width: 1400px) {
+            body.mode-ipad .header h1 {
+                font-size: 2rem;
+            }
+            body.mode-ipad .course-text {
+                font-size: 1.8rem;
+            }
+            body.mode-ipad .room-badge {
+                font-size: 1.4rem;
+            }
+            body.mode-ipad .suspended-badge, body.mode-ipad .no-classroom-badge, body.mode-ipad .delayed-badge, body.mode-ipad .outdoor-badge {
+                font-size: .9rem;
+            }
+            body.mode-ipad .special-info-badge {
+                font-size: .8rem;
+            }
+        }
+        @media (max-width: 1200px) {
+            body.mode-ipad .header h1 {
+                font-size: 1.8rem;
+            }
+            body.mode-ipad .column-title {
+                font-size: 1.2rem;
+            }
+            body.mode-ipad .course-text {
+                font-size: 1.6rem;
+            }
+            body.mode-ipad .room-badge {
+                font-size: 1.3rem;
+            }
+            body.mode-ipad .suspended-badge, body.mode-ipad .no-classroom-badge, body.mode-ipad .delayed-badge, body.mode-ipad .outdoor-badge {
+                font-size: .85rem;
+                padding: 2px 5px;
+            }
+            body.mode-ipad .special-info-badge {
+                font-size: .75rem;
+            }
+        }
+        @media (max-width: 1024px) {
+            body.mode-ipad .header h1 {
+                font-size: 1.4rem;
+            }
+            body.mode-ipad .header .date {
+                font-size: .9rem;
+            }
+            body.mode-ipad .column-title {
+                font-size: 1rem;
+            }
+            body.mode-ipad .course-text {
+                font-size: 1.2rem;
+            }
+            body.mode-ipad .room-badge {
+                font-size: 1rem;
+            }
+            body.mode-ipad .suspended-badge, body.mode-ipad .no-classroom-badge, body.mode-ipad .delayed-badge, body.mode-ipad .outdoor-badge {
+                font-size: .75rem;
+                padding: 1px 4px;
+            }
+            body.mode-ipad .special-info-badge {
+                font-size: .7rem;
+                padding: 1px 3px;
+            }
+        }
+        @media (max-width: 768px) {
+            body.mode-ipad .header h1 {
+                font-size: 1.2rem;
+            }
+            body.mode-ipad .header .date {
+                font-size: .8rem;
+            }
+            body.mode-ipad .column-title {
+                font-size: .9rem;
+            }
+            body.mode-ipad .course-text {
+                font-size: 1rem;
+            }
+            body.mode-ipad .room-badge {
+                font-size: .9rem;
+            }
+            body.mode-ipad .suspended-badge, body.mode-ipad .no-classroom-badge, body.mode-ipad .delayed-badge, body.mode-ipad .outdoor-badge {
+                font-size: .7rem;
+                padding: 1px 4px;
+            }
+            body.mode-ipad .special-info-badge {
+                font-size: .65rem;
+                padding: 1px 3px;
+            }
+            body.mode-ipad .column.dense .course-text {
+                font-size: .9rem;
+            }
+            body.mode-ipad .column.dense .room-badge {
+                font-size: .8rem;
+            }
+            body.mode-ipad .column.dense .suspended-badge, body.mode-ipad .column.dense .no-classroom-badge, body.mode-ipad .column.dense .delayed-badge, body.mode-ipad .column.dense .outdoor-badge {
+                font-size: .65rem;
+                padding: 1px 3px;
+            }
+            body.mode-ipad .column.dense .special-info-badge {
+                font-size: .6rem;
+                padding: 1px 2px;
+            }
+        }
+        @media (max-width: 640px) {
+            body.mode-ipad .header h1 {
+                font-size: 1rem;
+            }
+            body.mode-ipad .header .date {
+                font-size: .7rem;
+            }
+            body.mode-ipad .column-title {
+                font-size: .8rem;
+            }
+            body.mode-ipad .course-text {
+                font-size: .9rem;
+            }
+            body.mode-ipad .room-badge {
+                font-size: .8rem;
+            }
+            body.mode-ipad .suspended-badge, body.mode-ipad .no-classroom-badge, body.mode-ipad .delayed-badge, body.mode-ipad .outdoor-badge {
+                font-size: .65rem;
+                padding: 1px 3px;
+            }
+            body.mode-ipad .special-info-badge {
+                font-size: .6rem;
+                padding: 1px 2px;
+            }
+            body.mode-ipad .column.dense .course-text {
+                font-size: .8rem;
+            }
+            body.mode-ipad .column.dense .room-badge {
+                font-size: .7rem;
+            }
+            body.mode-ipad .column.dense .suspended-badge, body.mode-ipad .column.dense .no-classroom-badge, body.mode-ipad .column.dense .delayed-badge, body.mode-ipad .column.dense .outdoor-badge {
+                font-size: .6rem;
+                padding: 1px 2px;
+            }
+            body.mode-ipad .column.dense .special-info-badge {
+                font-size: .55rem;
+            }
+            body.mode-ipad .column.dense .column-title {
+                font-size: .75rem;
+            }
+        }
+        @media (max-width: 480px) {
+            body.mode-ipad .header h1 {
+                font-size: .9rem;
+            }
+            body.mode-ipad .header .date {
+                font-size: .6rem;
+            }
+            body.mode-ipad .column-title {
+                font-size: .75rem;
+            }
+            body.mode-ipad .course-text {
+                font-size: .8rem;
+            }
+            body.mode-ipad .room-badge {
+                font-size: .7rem;
+            }
+            body.mode-ipad .suspended-badge, body.mode-ipad .no-classroom-badge, body.mode-ipad .delayed-badge, body.mode-ipad .outdoor-badge {
+                font-size: .6rem;
+                padding: 1px 2px;
+            }
+            body.mode-ipad .special-info-badge {
+                font-size: .55rem;
+            }
+            body.mode-ipad .column.dense .course-text {
+                font-size: .7rem;
+            }
+            body.mode-ipad .column.dense .room-badge {
+                font-size: .65rem;
+            }
+            body.mode-ipad .column.dense .suspended-badge, body.mode-ipad .column.dense .no-classroom-badge, body.mode-ipad .column.dense .delayed-badge, body.mode-ipad .column.dense .outdoor-badge {
+                font-size: .55rem;
+            }
+            body.mode-ipad .column.dense .special-info-badge {
+                font-size: .5rem;
+            }
+            body.mode-ipad .column.dense .column-title {
+                font-size: .7rem;
+            }
+        }
+        @media (max-height: 600px) {
+            body.mode-ipad .course-text {
+                font-size: .8rem !important;
+            }
+            body.mode-ipad .room-badge {
+                font-size: .7rem !important;
+            }
+            body.mode-ipad .suspended-badge, body.mode-ipad .no-classroom-badge, body.mode-ipad .delayed-badge, body.mode-ipad .outdoor-badge {
+                font-size: .6rem !important;
+                padding: 1px 2px !important;
+            }
+            body.mode-ipad .special-info-badge {
+                font-size: .55rem !important;
+            }
+            body.mode-ipad .column-title {
+                font-size: .75rem !important;
+            }
+        }
+        @media (max-height: 500px) {
+            body.mode-ipad .header h1 {
+                font-size: .8rem !important;
+            }
+            body.mode-ipad .header .date {
+                font-size: .6rem !important;
+            }
+            body.mode-ipad .course-text {
+                font-size: .7rem !important;
+            }
+            body.mode-ipad .room-badge {
+                font-size: .65rem !important;
+            }
+            body.mode-ipad .suspended-badge, body.mode-ipad .no-classroom-badge, body.mode-ipad .delayed-badge, body.mode-ipad .outdoor-badge {
+                font-size: .55rem !important;
+            }
+            body.mode-ipad .special-info-badge {
+                font-size: .5rem !important;
+            }
+            body.mode-ipad .column-title {
+                font-size: .7rem !important;
+            }
+        }
+        @media (max-width: 768px) and (orientation: landscape) {
+            body.mode-ipad .course-text {
+                font-size: .9rem;
+            }
+            body.mode-ipad .room-badge {
+                font-size: .8rem;
+            }
+            body.mode-ipad .suspended-badge, body.mode-ipad .no-classroom-badge, body.mode-ipad .delayed-badge, body.mode-ipad .outdoor-badge {
+                font-size: .65rem;
+                padding: 1px 3px;
+            }
+            body.mode-ipad .column-title {
+                font-size: .8rem;
+            }
+        }
+/* ════════════════════════════════════════
+           提醒系統樣式（新增）
+        ════════════════════════════════════════ */
+        .reminder-overlay {
+            position:fixed; inset:0; z-index:99999;
+            display:none; align-items:center; justify-content:center;
+        }
+        .reminder-overlay.active { display:flex; }
+
+        .reminder-backdrop {
+            position:absolute; inset:0;
+            backdrop-filter:blur(20px) saturate(0.5);
+            -webkit-backdrop-filter:blur(20px) saturate(0.5);
+        }
+
+        .reminder-card {
+            position:relative; z-index:1;
+            width:min(94vw, 620px);
+            border-radius:28px;
+            padding:40px 38px 32px;
+            border:1px solid rgba(255,255,255,0.15);
+            box-shadow:0 50px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06);
+            animation:reminderPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+        @keyframes reminderPop {
+            from{opacity:0;transform:translateY(40px) scale(0.92)}
+            to{opacity:1;transform:translateY(0) scale(1)}
+        }
+
+        /* 電梯卡（橘色系） */
+        #elevator-overlay .reminder-backdrop { background:rgba(120,40,10,0.6); }
+        #elevator-overlay .reminder-card     { background:linear-gradient(145deg,#3d1505 0%,#7c2d12 55%,#9a3412 100%); }
+        #elevator-overlay .reminder-title    { color:#fcd34d; }
+
+        /* 閉館檢查（深藍色系） */
+        #closing-overlay .reminder-backdrop  { background:rgba(5,15,50,0.65); }
+        #closing-overlay .reminder-card      { background:linear-gradient(145deg,#080f2e 0%,#0f2252 55%,#1a3a6e 100%); }
+        #closing-overlay .reminder-title     { color:#93c5fd; }
+
+        .reminder-icon-row {
+            display:flex; align-items:center; gap:18px; margin-bottom:22px;
+        }
+        .reminder-icon {
+            width:68px; height:68px; border-radius:18px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:32px; flex-shrink:0; position:relative;
+        }
+        #elevator-overlay .reminder-icon {
+            background:linear-gradient(135deg,#f59e0b,#ea580c);
+            box-shadow:0 8px 28px rgba(245,158,11,0.45);
+        }
+        #closing-overlay .reminder-icon {
+            background:linear-gradient(135deg,#3b82f6,#0891b2);
+            box-shadow:0 8px 28px rgba(59,130,246,0.45);
+        }
+        .reminder-icon-dot {
+            position:absolute; top:-5px; right:-5px;
+            width:18px; height:18px; border-radius:50%;
+            background:#ef4444; border:2px solid #0f172a;
+        }
+        .reminder-icon-dot::before,.reminder-icon-dot::after {
+            content:''; position:absolute; inset:-4px; border-radius:50%;
+            border:2px solid #ef4444;
+            animation:dotPulse 1.4s ease-out infinite;
+        }
+        .reminder-icon-dot::after { animation-delay:.5s; }
+        @keyframes dotPulse {
+            from{opacity:1;transform:scale(1)} to{opacity:0;transform:scale(2.4)}
+        }
+        .reminder-meta { flex:1; }
+        .reminder-label {
+            font-size:.7rem; font-weight:700; letter-spacing:3px;
+            text-transform:uppercase; opacity:.5; margin-bottom:4px;
+        }
+        .reminder-title { font-size:1.8rem; font-weight:900; letter-spacing:-.5px; line-height:1.1; }
+        .reminder-time  { font-size:.8rem; opacity:.4; margin-top:4px; letter-spacing:.5px; }
+
+        .reminder-checklist {
+            list-style:none; display:flex; flex-direction:column;
+            gap:10px; margin-bottom:28px;
+        }
+        .reminder-checklist li {
+            display:flex; align-items:center; gap:14px;
+            padding:13px 16px; border-radius:14px;
+            background:rgba(255,255,255,0.06);
+            border:1px solid rgba(255,255,255,0.08);
+            font-size:1rem; font-weight:500; line-height:1.35;
+            cursor:pointer; user-select:none;
+            transition:background .2s, opacity .2s;
+        }
+        .reminder-checklist li:hover { background:rgba(255,255,255,0.10); }
+        .reminder-checklist li.checked { opacity:.45; }
+        .r-check {
+            width:22px; height:22px; border-radius:6px; flex-shrink:0;
+            border:2px solid rgba(255,255,255,0.22);
+            display:flex; align-items:center; justify-content:center;
+            font-size:12px; font-weight:700; transition:all .2s;
+        }
+        .reminder-checklist li.checked .r-check {
+            background:#22c55e; border-color:#22c55e; color:white;
+        }
+        .r-emoji { font-size:1.1rem; flex-shrink:0; }
+
+        .reminder-btn-row { display:flex; gap:10px; }
+        .r-btn {
+            flex:1; padding:14px 16px; border-radius:13px; border:none;
+            font-family:inherit; font-size:.95rem; font-weight:700;
+            cursor:pointer; letter-spacing:.3px;
+            transition:all .2s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .r-btn:hover { transform:translateY(-2px); filter:brightness(1.12); }
+        .r-btn:active { transform:scale(0.97); }
+        .r-btn-confirm {
+            background:linear-gradient(135deg,#22c55e,#16a34a);
+            color:white; box-shadow:0 6px 20px rgba(34,197,94,.35);
+        }
+        .r-btn-snooze {
+            background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.65);
+            border:1px solid rgba(255,255,255,0.12);
+        }
+        .r-btn-snooze:hover { background:rgba(255,255,255,0.13); }
+        .r-snooze-note {
+            text-align:center; font-size:.75rem; opacity:.35;
+            margin-top:10px; letter-spacing:.5px; min-height:1em;
+        }
+
+        /* ══════════ 顯示模式切換鈕（新增） ══════════ */
+        .mode-toggle {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            z-index: 4000;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.10);
+            backdrop-filter: blur(8px);
+            color: rgba(255,255,255,0.55);
+            font-family: inherit;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background .2s, opacity .2s, color .2s;
+            opacity: 0.6;
+        }
+        .mode-toggle:hover { opacity: 1; background: rgba(255,255,255,0.18); color: rgba(255,255,255,0.85); }
+        body.mode-ipad .mode-toggle { font-size: 0.7rem; padding: 6px 10px; }
     </style>
 </head>
 <body>
+    <script>
+        // 依裝置記住的顯示模式，在畫面畫出來之前就套用，避免閃一下錯誤版面
+        try {
+            if (localStorage.getItem('shulincc_display_mode') === 'ipad') {
+                document.body.classList.add('mode-ipad');
+            }
+        } catch (e) {}
+    </script>
     <div class="floating-particles"></div>
 
     <div id="status-indicator" class="status-indicator">
@@ -812,6 +1273,81 @@
         <div class="class-sign-qr-wrap">
             <div class="class-sign-qr" id="class-sign-qr"></div>
             <div class="class-sign-qr-label">掃碼看學員須知</div>
+        </div>
+    </div>
+
+    <button class="mode-toggle" id="mode-toggle" type="button">📱 切換成 iPad 版</button>
+
+    <!-- ══ 提醒1：下午 16:30 放電梯卡（只在 iPad 模式下會實際彈出） ══ -->
+    <div class="reminder-overlay" id="elevator-overlay">
+        <div class="reminder-backdrop"></div>
+        <div class="reminder-card">
+            <div class="reminder-icon-row">
+                <div class="reminder-icon">
+                    🛗
+                    <div class="reminder-icon-dot"></div>
+                </div>
+                <div class="reminder-meta">
+                    <div class="reminder-label">下午提醒 · 16:30</div>
+                    <div class="reminder-title">放電梯卡</div>
+                    <div class="reminder-time">請確認電梯卡已放置於指定位置</div>
+                </div>
+            </div>
+            <ul class="reminder-checklist" id="elevator-checklist">
+                <li onclick="toggleCheck(this)">
+                    <span class="r-emoji">🛗</span>
+                    <span class="r-check"></span>
+                    <span>電梯卡已放置於指定位置</span>
+                </li>
+            </ul>
+            <div class="reminder-btn-row">
+                <button class="r-btn r-btn-snooze" onclick="reminderSnooze('elevator',30)">30 分鐘後再提醒</button>
+                <button class="r-btn r-btn-confirm" onclick="reminderDismiss('elevator')">✓ 確認完成</button>
+            </div>
+            <div class="r-snooze-note" id="elevator-snooze-note"></div>
+        </div>
+    </div>
+
+    <!-- ══ 提醒2：晚上 21:40 閉館檢查（只在 iPad 模式下會實際彈出） ══ -->
+    <div class="reminder-overlay" id="closing-overlay">
+        <div class="reminder-backdrop"></div>
+        <div class="reminder-card">
+            <div class="reminder-icon-row">
+                <div class="reminder-icon">
+                    🏫
+                    <div class="reminder-icon-dot"></div>
+                </div>
+                <div class="reminder-meta">
+                    <div class="reminder-label">閉館檢查 · 21:40</div>
+                    <div class="reminder-title">閉館前確認清單</div>
+                    <div class="reminder-time">請逐項確認後按「確認完成」</div>
+                </div>
+            </div>
+            <ul class="reminder-checklist" id="closing-checklist">
+                <li onclick="toggleCheck(this)">
+                    <span class="r-emoji">🚪</span><span class="r-check"></span><span>檢查教室</span>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <span class="r-emoji">❄️</span><span class="r-check"></span><span>冷氣卡歸還</span>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <span class="r-emoji">💡</span><span class="r-check"></span><span>投射燈充電確認</span>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <span class="r-emoji">🖥️</span><span class="r-check"></span><span>曲面螢幕充電確認</span>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <span class="r-emoji">🔑</span><span class="r-check"></span><span>鑰匙歸還</span>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <span class="r-emoji">💧</span><span class="r-check"></span><span>飲水機鑰匙歸還</span>
+                </li>
+            </ul>
+            <div class="reminder-btn-row">
+                <button class="r-btn r-btn-snooze" onclick="reminderSnooze('closing',30)">30 分鐘後再提醒</button>
+                <button class="r-btn r-btn-confirm" onclick="reminderDismiss('closing')">✓ 確認完成</button>
+            </div>
+            <div class="r-snooze-note" id="closing-snooze-note"></div>
         </div>
     </div>
 
@@ -3559,9 +4095,8 @@ var qrcode = function() {
             document.getElementById('class-sign-course').textContent = displayCourseName;
             const teacherEl = document.getElementById('class-sign-teacher');
             if (info && info.teacherName) {
-                teacherEl.textContent = info.stageName
-                    ? `授課老師：${info.teacherName}（${info.stageName}）`
-                    : `授課老師：${info.teacherName}`;
+                const displayName = info.stageName || info.teacherName;
+                teacherEl.textContent = `授課老師：${displayName}`;
                 teacherEl.style.display = '';
             } else {
                 teacherEl.textContent = '';
@@ -3723,6 +4258,133 @@ var qrcode = function() {
             }
         }
         document.addEventListener('DOMContentLoaded', init);
+
+        /* ════════════════════════════════════════
+           顯示模式切換（新增）：一顆按鈕在「電視/電腦版」與「iPad 版」之間切換，
+           選擇會記在該台裝置的 localStorage，重新整理後還記得。
+        ════════════════════════════════════════ */
+        function applyModeButtonLabel() {
+            const btn = document.getElementById('mode-toggle');
+            const isIpad = document.body.classList.contains('mode-ipad');
+            btn.textContent = isIpad ? '🖥️ 切換成電視/電腦版' : '📱 切換成 iPad 版';
+        }
+        function initModeToggle() {
+            applyModeButtonLabel();
+            document.getElementById('mode-toggle').addEventListener('click', () => {
+                const isIpad = document.body.classList.toggle('mode-ipad');
+                try { localStorage.setItem('shulincc_display_mode', isIpad ? 'ipad' : 'tv'); } catch (e) {}
+                applyModeButtonLabel();
+            });
+        }
+        document.addEventListener('DOMContentLoaded', initModeToggle);
+
+        /* ════════════════════════════════════════
+           提醒系統（沿用 iPad 版）：放電梯卡 / 閉館檢查。
+           只有目前是 iPad 模式時才會真的彈出，電視/電腦版不受影響。
+        ════════════════════════════════════════ */
+
+        // 提醒時間設定 [hour, minute]
+        const REMINDERS = {
+            elevator: { h: 16, m: 30 },
+            closing:  { h: 21, m: 40 }
+        };
+
+        // 台灣國定假日
+        const TW_HOLIDAYS = new Set([
+            // 2025
+            '2025-01-01','2025-01-27','2025-01-28','2025-01-29','2025-01-30','2025-01-31',
+            '2025-02-03','2025-02-04','2025-04-03','2025-04-04','2025-05-01','2025-05-31',
+            '2025-06-07','2025-09-03','2025-10-10','2025-10-31',
+            // 2026
+            '2026-01-01','2026-01-26','2026-01-27','2026-01-28','2026-01-29','2026-01-30',
+            '2026-02-17','2026-04-03','2026-04-04','2026-04-06','2026-05-01','2026-06-19',
+            '2026-09-21','2026-10-09','2026-10-10',
+        ]);
+
+        const reminderSnoozedUntil = { elevator: null, closing: null };
+        const reminderShownToday   = { elevator: null, closing: null };
+
+        function reminderTodayStr(d = new Date()) {
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        }
+
+        function isWorkday(d = new Date()) {
+            const dow = d.getDay();
+            if (dow === 0 || dow === 6) return false;
+            return !TW_HOLIDAYS.has(reminderTodayStr(d));
+        }
+
+        function playBell() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                [880, 1046, 1318, 1760].forEach((freq, i) => {
+                    const osc = ctx.createOscillator(), gain = ctx.createGain();
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.type = 'sine'; osc.frequency.value = freq;
+                    const t = ctx.currentTime + i * 0.2;
+                    gain.gain.setValueAtTime(0, t);
+                    gain.gain.linearRampToValueAtTime(0.28, t + 0.06);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.0);
+                    osc.start(t); osc.stop(t + 1.0);
+                });
+            } catch(e) {}
+        }
+
+        function showReminder(id) {
+            const el = document.getElementById(id + '-overlay');
+            el.querySelectorAll('.reminder-checklist li').forEach(li => {
+                li.classList.remove('checked');
+                li.querySelector('.r-check').textContent = '';
+            });
+            document.getElementById(id + '-snooze-note').textContent = '';
+            el.classList.add('active');
+            playBell();
+            navigator.vibrate && navigator.vibrate([300, 100, 300]);
+        }
+
+        function reminderDismiss(id) {
+            document.getElementById(id + '-overlay').classList.remove('active');
+        }
+
+        function reminderSnooze(id, minutes) {
+            reminderSnoozedUntil[id] = Date.now() + minutes * 60 * 1000;
+            document.getElementById(id + '-overlay').classList.remove('active');
+            showStatus(`已延後 ${minutes} 分鐘後提醒`, 'info', 4000);
+        }
+
+        function toggleCheck(li) {
+            li.classList.toggle('checked');
+            const box = li.querySelector('.r-check');
+            box.textContent = li.classList.contains('checked') ? '✓' : '';
+        }
+
+        function checkReminders() {
+            if (!document.body.classList.contains('mode-ipad')) return; // 只在 iPad 模式下提醒
+            if (!isWorkday()) return;
+            const now = new Date();
+            const h = now.getHours(), m = now.getMinutes();
+            const ds = reminderTodayStr(now);
+
+            Object.entries(REMINDERS).forEach(([id, time]) => {
+                if (h !== time.h || m !== time.m) return;
+                if (reminderShownToday[id] === ds) return;
+                if (reminderSnoozedUntil[id] && Date.now() < reminderSnoozedUntil[id]) return;
+                reminderShownToday[id] = ds;
+                reminderSnoozedUntil[id] = null;
+                showReminder(id);
+            });
+
+            Object.entries(reminderSnoozedUntil).forEach(([id, until]) => {
+                if (!until || Date.now() < until) return;
+                reminderSnoozedUntil[id] = null;
+                const rem = REMINDERS[id];
+                const elapsed = (h * 60 + m) - (rem.h * 60 + rem.m);
+                if (elapsed >= 0 && elapsed <= 60) showReminder(id);
+            });
+        }
+
+        // 每 5 秒檢查一次
+        setInterval(checkReminders, 5000);
     </script>
 </body>
 </html>
