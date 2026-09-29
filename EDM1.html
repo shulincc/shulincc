@@ -63,12 +63,13 @@
             pointer-events: auto;
         }
         
-        /* YouTube和iframe 100%填滿 */
+        /* YouTube、iframe 和新增的 mp4-video 100%填滿 */
         .adImage.youtube,
         .adImage.youtube-live,
         .adImage.canva,
         .adImage.canva-video,
-        .adImage.pdf {
+        .adImage.pdf,
+        .adImage.mp4-video {
             width: 100%;
             height: 100%;
         }
@@ -77,13 +78,18 @@
         .adImage.youtube-live iframe,
         .adImage.canva iframe,
         .adImage.canva-video iframe,
-        .adImage.pdf iframe {
+        .adImage.pdf iframe,
+        .adImage.mp4-video video {
             width: 100%;
             height: 100%;
             border: none;
             pointer-events: auto;
             position: relative;
             z-index: 2;
+        }
+        /* 新增：為 mp4-video 加入黑色背景，避免未滿版時漏光 */
+        .adImage.mp4-video {
+            background-color: #000;
         }
         
         .note-overlay {
@@ -430,6 +436,7 @@
                 <li>PDF文件 (type=pdf)</li>
                 <li>HTML內容 (type=html)</li>
                 <li>iframe嵌入 (type=iframe)</li>
+                <li>原生MP4影片 (type=mp4-video) - 新增支援自動播放</li>
             </ul>
             <p>CSV格式: url, type, duration, note, qr</p>
         </div>
@@ -559,6 +566,7 @@
                         }
                         note = note.replace(/""/g, '"');
                         
+                        // ===== 新增：允許 mp4-video 類型通過 =====
                         if (url && (
                             type === 'image' || 
                             type === 'youtube' || 
@@ -567,7 +575,8 @@
                             type === 'youtube-live' ||
                             type === 'pdf' ||
                             type === 'iframe' ||
-                            type === 'html'
+                            type === 'html' ||
+                            type === 'mp4-video' 
                         )) {
                             newAdImages.push({
                                 url: url,
@@ -814,6 +823,19 @@
                         loadPdfIframe(imgContainer, item.url, index);
                     }
                     imgContainer.innerHTML += createNoteAndQRHTML(index, item);
+                } else if (item.type === 'mp4-video') {
+                    // ===== 新增：初始化 mp4-video 容器 =====
+                    imgContainer.classList.add('mp4-video');
+                    if (index === 0) {
+                        imgContainer.innerHTML = `
+                            <video src="${item.url}" 
+                                   autoplay 
+                                   ${isSoundOn ? '' : 'muted'} 
+                                   style="width: 100%; height: 100%; object-fit: contain; pointer-events: auto;">
+                            </video>
+                        ` + createNoteAndQRHTML(index, item);
+                    }
+                    imgContainer.innerHTML += createNoteAndQRHTML(index, item);
                 } else if (item.type === 'iframe') {
                     if (index === 0) {
                         imgContainer.innerHTML = `
@@ -1008,18 +1030,23 @@
             
             const previousImage = images[currentIndex];
             
-            // 徹底清理所有舊的iframe（不只YouTube）
+            // 徹底清理所有舊的iframe和video（停止播放聲音）
             const allOldIframes = previousImage.querySelectorAll('iframe');
             allOldIframes.forEach(iframe => {
                 try {
-                    // 先暫停播放（如果可能）
                     iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                } catch(e) {
-                    // 跨域限制，忽略錯誤
-                }
-                // 立即設為空白並移除
+                } catch(e) {}
                 iframe.src = 'about:blank';
                 iframe.remove();
+            });
+
+            // ===== 新增：切換走時，自動停止 mp4 影片 =====
+            const allOldVideos = previousImage.querySelectorAll('video');
+            allOldVideos.forEach(video => {
+                video.pause();
+                video.src = '';
+                video.load();
+                video.remove();
             });
             
             previousImage.classList.remove('active');
@@ -1045,11 +1072,28 @@
                 }
             } else if (newImage.classList.contains('pdf')) {
                 loadPdfIframe(newImage, adImages[currentIndex].url, currentIndex);
+            } else if (newImage.classList.contains('mp4-video')) {
+                // ===== 新增：切換到 mp4-video 時生成 video 標籤並播放 =====
+                const currentItem = adImages[currentIndex];
+                newImage.innerHTML = `
+                    <video src="${currentItem.url}" 
+                           autoplay 
+                           ${isSoundOn ? '' : 'muted'} 
+                           style="width: 100%; height: 100%; object-fit: contain; pointer-events: auto;">
+                    </video>
+                ` + createNoteAndQRHTML(currentIndex, currentItem);
+                
+                if (currentItem.qr && currentItem.qr.trim() !== '') {
+                    setTimeout(() => {
+                        generateQRCode(`qr-${currentIndex}`, currentItem.qr);
+                    }, 300);
+                }
             } else if (adImages[currentIndex].type === 'iframe') {
                 const currentItem = adImages[currentIndex];
                 newImage.innerHTML = `
                     <iframe src="${currentItem.url}"
                             frameborder="0"
+                            allow="autoplay; fullscreen"
                             allowfullscreen
                             style="pointer-events: auto; width: 100%; height: 100%; position: relative; z-index: 2;">
                     </iframe>
@@ -1102,7 +1146,7 @@
                 if (noteLength > 0) info += ` | 說明: ${noteLength}字`;
                 if (hasQR) info += ` | 📱 QR碼`;
                 if (startTime) info += ` | ⏱️ 從${startTime}秒開始`;
-                if (isCurrentActive && (item.type === 'youtube' || item.type === 'youtube-live')) {
+                if (isCurrentActive && (item.type === 'youtube' || item.type === 'youtube-live' || item.type === 'mp4-video')) {
                     info += ` | 🎬 播放中`;
                 }
                 
@@ -1162,6 +1206,12 @@
             if (activeYouTube) {
                 loadYouTubeIframe(document.querySelector('.adImage.active.youtube'), currentIndex);
             }
+
+            // ===== 新增：聲音切換時，連動調整 mp4-video 的靜音狀態 =====
+            const activeMp4 = document.querySelector('.adImage.active.mp4-video video');
+            if (activeMp4) {
+                activeMp4.muted = !isSoundOn;
+            }
             
             const bgVideoIframe = backgroundVideo.querySelector('iframe');
             if (bgVideoIframe) {
@@ -1200,7 +1250,6 @@
             fetchData();
             setInterval(fetchData, 60000);
             
-            // 根據開關決定是否載入背景影片
             if (ENABLE_BACKGROUND_VIDEO) {
                 loadBackgroundVideo();
             }
@@ -1225,8 +1274,7 @@
                 }, 5000);
             });
             
-            console.log('投影機大畫面系統 - 版本一（簡化播放控制 + 徹底清理iframe）初始化完成');
-            console.log('背景影片功能:', ENABLE_BACKGROUND_VIDEO ? '已開啟' : '已關閉');
+            console.log('投影機大畫面系統 - 初始化完成 (已加入 mp4-video 支援)');
         }
 
         window.addEventListener('load', init);
